@@ -44,27 +44,206 @@ public class GridManager : Singleton<GridManager>
         return _tiles;
     }
 
-    public List<Tile> GetNeighbours(Tile i_tile, int i_depth = 1)
+    public void CheckScore(Tile i_tile)
     {
-        List<Tile> neighbours = new List<Tile>();
+        List<Tile> listCheck = new List<Tile>();
+        List<Tile> finishList = new List<Tile>();
+        bool yang = true;
+        bool yin = true;
+        int x = i_tile.GetLocation().x;
+        int y = i_tile.GetLocation().y;
+        listCheck.Add(i_tile);
+        int maxPoint = Mathf.Max(WIDTH, HEIGHT);
 
-        for (int x = -i_depth; x <= i_depth; x++)
+        #region vertical
+        for (int i = 1; i < maxPoint - 1; i++)
         {
-            for (int y = -i_depth; y <= i_depth; y++)
+            Vector2Int yangNumber = new Vector2Int(x, y - i);
+            Vector2Int yinNumber = new Vector2Int(x, y + i);
+
+            if (_tiles.ContainsKey(yangNumber) && yang)
             {
-                if (x == 0 && y == 0)
-                    continue;
-
-                int checkX = i_tile.GetLocation().x + x;
-                int checkY = i_tile.GetLocation().y + y;
-
-                if (checkX >= 0 && checkX < WIDTH && checkY >= 0 && checkY < HEIGHT)
+                if (_tiles[yangNumber].GetBall() != null && _tiles[yangNumber].GetBall().Color == i_tile.GetBall().Color)
                 {
-                    neighbours.Add(_tiles[new Vector2Int(checkX, checkY)]);
+                    listCheck.Add(_tiles[yangNumber]);
                 }
+                else yang = false;
+            }
+            else yang = false;
+
+            if (_tiles.ContainsKey(yinNumber) && yin)
+            {
+                if (_tiles[yinNumber].GetBall() != null && _tiles[yinNumber].GetBall().Color == i_tile.GetBall().Color)
+                {
+                    listCheck.Add(_tiles[yinNumber]);
+                }
+                else yin = false;
+            }
+            else yin = false;
+
+            if (!yin && !yang)
+            {
+                if (listCheck.Count >= 5)
+                {
+                    if (finishList.Contains(i_tile))
+                        listCheck.Remove(i_tile);
+
+                    finishList.AddRange(listCheck);
+                    listCheck.Clear();
+                }
+                else
+                    listCheck.Clear();
+
+                break;
             }
         }
+        #endregion
 
-        return neighbours;
+        #region horizontal
+        listCheck.Add(i_tile);
+        yang = true; yin = true;
+        for (int i = 1; i < maxPoint - 1; i++)
+        {
+            Vector2Int yangNumber = new Vector2Int(x - i, y);
+            Vector2Int yinNumber = new Vector2Int(x + i, y);
+
+            if (_tiles.ContainsKey(yangNumber) && yang)
+            {
+                if (_tiles[yangNumber].GetBall() != null && _tiles[yangNumber].GetBall().Color == i_tile.GetBall().Color)
+                {
+                    listCheck.Add(_tiles[yangNumber]);
+                }
+                else yang = false;
+            }
+            else yang = false;
+
+            if (_tiles.ContainsKey(yinNumber) && yin)
+            {
+                if (_tiles[yinNumber].GetBall() != null && _tiles[yinNumber].GetBall().Color == i_tile.GetBall().Color)
+                {
+                    listCheck.Add(_tiles[yinNumber]);
+                }
+                else yin = false;
+            }
+            else yin = false;
+
+            if (!yin && !yang)
+            {
+                if (listCheck.Count >= 5)
+                {
+                    if (finishList.Contains(i_tile))
+                        listCheck.Remove(i_tile);
+
+                    finishList.AddRange(listCheck);
+                    listCheck.Clear();
+                }
+                else
+                    listCheck.Clear();
+
+                break;
+            }
+        }
+        #endregion
+
+        #region diagonal left
+        listCheck.Add(i_tile);
+        yang = true; yin = true;
+        for (int i = 1; i < maxPoint - 1; i++)
+        {
+            Vector2Int yangNumber = new Vector2Int(x - i, y + i);
+            Vector2Int yinNumber = new Vector2Int(x + i, y - i);
+
+            if (_tiles.ContainsKey(yangNumber) && yang)
+            {
+                if (_tiles[yangNumber].GetBall() != null && _tiles[yangNumber].GetBall().Color == i_tile.GetBall().Color)
+                {
+                    listCheck.Add(_tiles[yangNumber]);
+                }
+                else yang = false;
+            }
+            else yang = false;
+
+            if (_tiles.ContainsKey(yinNumber) && yin)
+            {
+                if (_tiles[yinNumber].GetBall() != null && _tiles[yinNumber].GetBall().Color == i_tile.GetBall().Color)
+                {
+                    listCheck.Add(_tiles[yinNumber]);
+                }
+                else yin = false;
+            }
+            else yin = false;
+
+            if (!yin && !yang)
+            {
+                if (listCheck.Count >= 5)
+                {
+                    if (finishList.Contains(i_tile))
+                        listCheck.Remove(i_tile);
+
+                    finishList.AddRange(listCheck);
+                    listCheck.Clear();
+                }
+                else
+                    listCheck.Clear();
+
+                break;
+            }
+        }
+        #endregion
+
+        #region diagonal right
+        listCheck.Add(i_tile);
+        yang = true; yin = true;
+        for (int i = 1; i < maxPoint - 1; i++)
+        {
+            Vector2Int yangNumber = new Vector2Int(x + i, y + i);
+            Vector2Int yinNumber = new Vector2Int(x - i, y - i);
+
+            if (_tiles.ContainsKey(yangNumber) && yang)
+            {
+                if (_tiles[yangNumber].GetBall() != null && _tiles[yangNumber].GetBall().Color == i_tile.GetBall().Color)
+                {
+                    listCheck.Add(_tiles[yangNumber]);
+                }
+                else yang = false;
+            }
+            else yang = false;
+
+            if (_tiles.ContainsKey(yinNumber) && yin)
+            {
+                if (_tiles[yinNumber].GetBall() != null && _tiles[yinNumber].GetBall().Color == i_tile.GetBall().Color)
+                {
+                    listCheck.Add(_tiles[yinNumber]);
+                }
+                else yin = false;
+            }
+            else yin = false;
+
+            if (!yin && !yang)
+            {
+                if (listCheck.Count >= 5)
+                {
+                    if (finishList.Contains(i_tile))
+                        listCheck.Remove(i_tile);
+
+                    finishList.AddRange(listCheck);
+                    listCheck.Clear();
+                }
+                else
+                    listCheck.Clear();
+
+                break;
+            }
+        }
+        #endregion
+
+        if(finishList.Count >= 5)
+        {
+            BallManager.Instance.DestroyBall(finishList);
+        }    
     }
+    private bool isInside(Vector2Int i_location)
+    {
+        return (i_location.x >= 0 && i_location.x < WIDTH && i_location.y >= 0 && i_location.y < HEIGHT) ;
+    }    
 }

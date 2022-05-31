@@ -10,7 +10,12 @@ public class GameManager : Singleton<GameManager>
     private bool _isGameOver;
     private GAMESTATE _gameState = GAMESTATE.PLAYING;
 
+    //Score
+    private int _score;
+    private const int INSCREASESCORE = 10;
+
     #region Game Event
+    public UnityAction OnGameStart;
     public UnityAction OnEndTurn;
     public UnityAction OnWaitingTurn;
     #endregion
@@ -18,6 +23,12 @@ public class GameManager : Singleton<GameManager>
 
     public int NumSpawn = 3;
     public bool CanPlay { get { return !_isGameOver && _gameState == GAMESTATE.PLAYING; } }
+
+    private void Start()
+    {
+        OnGameStart?.Invoke();
+    }
+
     public Color GetRandomColor()
     {
         if (_gameSetting == null)
@@ -41,6 +52,12 @@ public class GameManager : Singleton<GameManager>
             case GAMESTATE.ENDTURN: OnEndTurn?.Invoke(); break;
             case GAMESTATE.WAITING: OnWaitingTurn?.Invoke(); break;
         }    
+    }    
+
+    public void IncreaseScore()
+    {
+        _score += INSCREASESCORE;
+        UIManager.Instance.ShowScore(_score);
     }    
 }
 

@@ -1,138 +1,129 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class PathFinding
 {
-    public List<Tile> FindPath(Tile i_start, Tile i_end)
+    public List<Tile> FindPath(Tile start, Tile end)
     {
-		List<Tile> path = new List<Tile>();
-		List<Tile> openTile = new List<Tile>();
-		List<Tile> closeTile = new List<Tile>();
+        List<Tile> openList = new List<Tile>();
+        List<Tile> closedList = new List<Tile>();
 
-		bool isSuccess = false;
+        openList.Add(start);
 
-		openTile.Add(i_start);
-
-		while(openTile.Count > 0)
+        if (end.isBlocked)
         {
-			Tile currentTile = openTile[0];
-			openTile.RemoveAt(0);
+            return new List<Tile>();
+        }
 
-			closeTile.Add(currentTile);
+        while (openList.Count > 0)
+        {
+            Tile currentTile = openList[0];
 
-			if(currentTile == i_end)
+            openList.Remove(currentTile);
+            closedList.Add(currentTile);
+
+            if (currentTile == end)
             {
-				isSuccess = true;
-				break;
-            }				
+                return GetFinishedList(start, end);
+            }
 
-			foreach(Tile tile in GridManager.Instance.GetNeighbours(currentTile))
+            if (!start.GetBall().isGhost)
             {
-				if(tile.isBlocked || closeTile.Contains(tile))
+                foreach (var tile in GetNeighbourTile(currentTile))
                 {
-					continue;
+                    if (tile.isBlocked || closedList.Contains(tile)) continue;
+
+                    tile.G = GetManhattenDistance(currentTile, tile) + currentTile.G;
+                    tile.H = GetManhattenDistance(end, tile);
+
+                    tile.SetPreviousTile(currentTile);
+
+                    if (!openList.Contains(tile))
+                    {
+                        openList.Add(tile);
+                    }
                 }
-				int newMovementCostToNeighbour = currentTile.G + GetDistance(currentTile, tile)/* + TurningCost(currentNode, neighbour)*/;
-				if (newMovementCostToNeighbour < tile.G || !openTile.Contains(tile))
-				{
-					tile.G = newMovementCostToNeighbour;
-					tile.H = GetDistance(tile, i_end);
-					tile.SetPreviousTile(currentTile);
+            }
+            else
+            {
+                foreach (var tile in GetNeighbourTile(currentTile))
+                {
+                    if (closedList.Contains(tile)) continue;
 
-					if (!openTile.Contains(tile))
-						openTile.Add(tile);
-				}
-			}				
-        }	
-		
-		if(isSuccess)
-        {
-			path = RetracePath(i_start, i_end);
-        }			
+                    tile.G = GetManhattenDistance(start, tile);
+                    tile.H = GetManhattenDistance(end, tile);
 
-        return path;
+                    tile.SetPreviousTile(currentTile);
+
+                    if (!openList.Contains(tile))
+                    {
+                        openList.Add(tile);
+                    }
+                }
+
+            }
+        }
+
+        return new List<Tile>();
+
     }
-	Tile FindMoveableInRadius(Dictionary<Vector2Int, Tile> i_tiles, int centreX, int centreY, int radius)
-	{
 
-		for (int i = -radius; i <= radius; i++)
-		{
-			int verticalSearchX = i + centreX;
-			int horizontalSearchY = i + centreY;
+    private int GetManhattenDistance(Tile start, Tile tile)
+    {
+        return Mathf.Abs(start.GetLocation().x - tile.GetLocation().x) + Mathf.Abs(start.GetLocation().y - tile.GetLocation().y);
+    }
 
-			// top
-			if (InBounds(verticalSearchX, centreY + radius))
-			{
-				var topLocation = new Vector2Int(verticalSearchX, centreY + radius);
-				if (!i_tiles[topLocation].isBlocked)
-				{
-					return i_tiles[topLocation];
-				}
-			}
+    private List<Tile> GetNeighbourTile(Tile currentTile)
+    {
+        var listTile = GridManager.Instance.GetTiles();
 
-			// bottom
-			if (InBounds(verticalSearchX, centreY - radius))
-			{
-				var bottomLocation = new Vector2Int(verticalSearchX, centreY - radius);
-				if (!i_tiles[bottomLocation].isBlocked)
-				{
-					return i_tiles[bottomLocation];
-				}
-			}
-			// right
-			if (InBounds(centreY + radius, horizontalSearchY))
-			{
-				var rightLocation = new Vector2Int(centreX + radius, horizontalSearchY);
-				if (!i_tiles[rightLocation].isBlocked)
-				{
-					return i_tiles[rightLocation];
-				}
-			}
+        List<Tile> neighbours = new List<Tile>();
 
-			// left
-			if (InBounds(centreY - radius, horizontalSearchY))
-			{
-				var leftLocation = new Vector2Int(centreX - radius, horizontalSearchY);
-				if (!i_tiles[leftLocation].isBlocked)
-				{
-					return i_tiles[leftLocation];
-				}
-			}
+        //right
+        Vector2Int locationToCheck = new Vector2Int(currentTile.GetLocation().x + 1, currentTile.GetLocation().y);
+        if (listTile.ContainsKey(locationToCheck))
+        {
+            neighbours.Add(listTile[locationToCheck]);
+        }
 
-		}
+        //left
+        locationToCheck = new Vector2Int(currentTile.GetLocation().x - 1, currentTile.GetLocation().y);
+        if (listTile.ContainsKey(locationToCheck))
+        {
+            neighbours.Add(listTile[locationToCheck]);
+        }
+        //top
+        locationToCheck = new Vector2Int(currentTile.GetLocation().x, currentTile.GetLocation().y + 1);
+        if (listTile.ContainsKey(locationToCheck))
+        {
+            neighbours.Add(listTile[locationToCheck]);
+        }
+        //bottom
+        locationToCheck = new Vector2Int(currentTile.GetLocation().x, currentTile.GetLocation().y - 1);
+        if (listTile.ContainsKey(locationToCheck))
+        {
+            neighbours.Add(listTile[locationToCheck]);
+        }
 
-		return null;
+        return neighbours;
+    }
 
-	}
-	bool InBounds(int x, int y)
-	{
-		return x >= 0 && x < GridManager.Instance.WIDTH && y >= 0 && y < GridManager.Instance.HEIGHT;
-	}
-	int GetDistance(Tile i_tileA, Tile i_tileB)
-	{
-		return Mathf.Abs(i_tileA.GetLocation().x - i_tileB.GetLocation().x) + Mathf.Abs(i_tileA.GetLocation().y - i_tileB.GetLocation().y);
+    private List<Tile> GetFinishedList(Tile start, Tile end)
+    {
+        List<Tile> finishedList = new List<Tile>();
+        Tile currentTile = end;
 
-		//int dstX = Mathf.Abs(i_tileA.GetLocation().x - i_tileB.GetLocation().x);
-		//int dstY = Mathf.Abs(i_tileA.GetLocation().y - i_tileB.GetLocation().y);
+        while (currentTile != start)
+        {
+            finishedList.Add(currentTile);
+            currentTile = currentTile.GetPreviousTile();
+        }
+        finishedList.Add(start);
 
-		//if (dstX > dstY)
-		//	return 14 * dstY + 10 * (dstX - dstY);
-		//return 14 * dstX + 10 * (dstY - dstX);
-	}
-	List<Tile> RetracePath(Tile i_start, Tile i_end)
-	{
-		List<Tile> path = new List<Tile>();
-		Tile currentNode = i_end;
+        finishedList.Reverse();
 
-		while (currentNode != i_start)
-		{
-			path.Add(currentNode);
-			currentNode = currentNode.GetPreviousTile();
-		}
-		path.Add(i_start);
-		path.Reverse();
-		return path;
-
-	}
+        return finishedList;
+    }
 }
