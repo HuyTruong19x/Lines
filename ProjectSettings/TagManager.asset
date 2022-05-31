@@ -6,6 +6,8 @@ TagManager:
   tags:
   - ball
   - tile
+  - Missile
+  - confetti
   layers:
   - Default
   - TransparentFX

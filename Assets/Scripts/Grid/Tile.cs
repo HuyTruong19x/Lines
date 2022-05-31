@@ -7,6 +7,7 @@ public class Tile : MonoBehaviour
     private Ball _ball;
     private bool _isShowed = false;
     public bool isBlocked { get { return _ball != null && _isShowed; } }
+    public bool hasBall { get { return _ball != null; } }
     private Vector2Int _location;
 
     //Support for PathFinding

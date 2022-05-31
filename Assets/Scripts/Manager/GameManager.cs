@@ -51,6 +51,7 @@ public class GameManager : Singleton<GameManager>
             case GAMESTATE.PLAYING:break;
             case GAMESTATE.ENDTURN: OnEndTurn?.Invoke(); break;
             case GAMESTATE.WAITING: OnWaitingTurn?.Invoke(); break;
+            case GAMESTATE.GAMEOVER: _isGameOver = true; Debug.LogError("Game Over"); break;
         }    
     }    
 
