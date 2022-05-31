@@ -238,6 +238,7 @@ public class BallManager : Singleton<BallManager>
             tile.GetBall().gameObject.SetActive(false);
             tile.SetShowed(false);
             tile.SetBall(null);
+            VFXManager.Instance.TriggerVFX("", tile.gameObject.transform.position);
         }
         GameManager.Instance.IncreaseScore();
         //Todo spawn VFX
