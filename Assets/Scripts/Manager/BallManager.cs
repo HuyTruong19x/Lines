@@ -2,11 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-
-public class BallManager : Singleton<BallManager>
+using DG.Tweening;
+public class BallManager : MonoBehaviour
 {
     public const float MAXIMUM = 0.8f;
-    public const float MINIMUM = 0.3f;
+    public const float MINIMUM = 0.2f;
+    private GridManager _gridManager;
     private Queue<Ball> _waitingBall = new Queue<Ball>();
     private Queue<Color> _waitingColor = new Queue<Color>();
 
@@ -20,21 +21,22 @@ public class BallManager : Singleton<BallManager>
 
     private void OnEnable()
     {
-        GameManager.Instance.OnGameStart += SetupBall;
-        GameManager.Instance.OnWaitingTurn += DequeueBall;
-        GameManager.Instance.OnEndTurn += GrowUpBall;
+        EventManager.Instance.RegisterEvent(GAMESTATE.STARTING, SetupBall);
+        EventManager.Instance.RegisterEvent(GAMESTATE.WAITING, DequeueBall);
+        EventManager.Instance.RegisterEvent(GAMESTATE.ENDTURN, GrowUpBall);
     }
 
     private void OnDisable()
     {
-        GameManager.Instance.OnGameStart -= SetupBall;
-        GameManager.Instance.OnWaitingTurn -= DequeueBall;
-        GameManager.Instance.OnEndTurn -= GrowUpBall;
+        EventManager.Instance.RemoveEvent(GAMESTATE.STARTING, SetupBall);
+        EventManager.Instance.RemoveEvent(GAMESTATE.WAITING, DequeueBall);
+        EventManager.Instance.RemoveEvent(GAMESTATE.ENDTURN, GrowUpBall);
     }
-    private void Start()
+    private void Awake()
     {
         _pathFinding = new PathFinding();
         _paths = new List<Tile>();
+        _gridManager = GameObject.FindObjectOfType<GridManager>();
     }
     private void FixedUpdate()
     {
@@ -47,12 +49,15 @@ public class BallManager : Singleton<BallManager>
                 {
                     _isDoMove = false;
                     _selectedTileWithBall.GetBall().transform.position = _targetMove;
-                    _selectedTileWithBall.GetBall().transform.localScale = Vector3.one * MAXIMUM;
-                    _selectedTileWithBall.SetBall(null);
-                    _selectedTileWithBall.SetShowed(false);
-                    _selectedTileWithBall = null;
-                    GridManager.Instance.CheckScore(GridManager.Instance.GetTile(new Vector2Int(_targetMove.x, _targetMove.y)));
-                    GameManager.Instance.EndTurn();
+                    _selectedTileWithBall.GetBall().transform.DOScale(Vector3.one * MAXIMUM, 0.3f).OnComplete(() =>
+                    {
+                        _selectedTileWithBall.SetBall(null);
+                        _selectedTileWithBall.SetShowed(false);
+                        _selectedTileWithBall = null;
+                        _gridManager.CheckScore(_gridManager.GetTile(new Vector2Int(_targetMove.x, _targetMove.y)));
+                        GameManager.Instance.EndTurn();
+                    }).Play();
+                    
                 }
                 if(_paths.Count > 0)
                 {
@@ -76,17 +81,15 @@ public class BallManager : Singleton<BallManager>
         }
 
         SpawnBall(true);
-        SpawnBall(false);
-        GameManager.Instance.ChangeGameState(GAMESTATE.PLAYING);
+        DequeueBall();
     }    
     private void DequeueBall()
     {
         SpawnBall(false);
-        GameManager.Instance.ChangeGameState(GAMESTATE.PLAYING);
     }
     public void SpawnBall(bool i_isShowed)
     {
-        var tiles = GridManager.Instance.GetTiles();
+        var tiles = _gridManager.GetTiles();
         List<Vector2Int> availableLocation = tiles.Keys.Where(x => !tiles[x].hasBall).ToList();
         if (availableLocation.Count < 1)
         {
@@ -95,10 +98,16 @@ public class BallManager : Singleton<BallManager>
         }
 
         int numSpawn = GameManager.Instance.NumSpawn > availableLocation.Count ? availableLocation.Count : GameManager.Instance.NumSpawn;
-
+        if(numSpawn <= 1)
+        {
+            GenerateBall(tiles, availableLocation, true, false, _waitingColor.Count > 0 ? _waitingColor.Dequeue() : GameManager.Instance.GetRandomColor());
+            GameManager.Instance.ChangeGameState(GAMESTATE.GAMEOVER);
+            return;
+        }
         for (int i = 0; i < numSpawn; i++)
         {
-            GenerateBall(tiles, availableLocation, i_isShowed, _waitingColor.Count > 0 ? _waitingColor.Dequeue() : GameManager.Instance.GetRandomColor());
+            int rand = UnityEngine.Random.Range(0, 100);
+            GenerateBall(tiles, availableLocation, i_isShowed, rand <= GameManager.Instance.GetRateSpawnGhostBall(), _waitingColor.Count > 0 ? _waitingColor.Dequeue() : GameManager.Instance.GetRandomColor());
         }
 
         List<Color> colors = new List<Color>();
@@ -109,10 +118,10 @@ public class BallManager : Singleton<BallManager>
             colors.Add(col);
         }
         UIManager.Instance.SetBallQueue(colors);
-
+        GameManager.Instance.ChangeGameState(GAMESTATE.PLAYING);
     }
 
-    private void GenerateBall(Dictionary<Vector2Int, Tile> i_tiles, List<Vector2Int> i_availableLocation, bool i_isShowed, Color i_color)
+    private void GenerateBall(Dictionary<Vector2Int, Tile> i_tiles, List<Vector2Int> i_availableLocation, bool i_isShowed, bool i_isGhost, Color i_color)
     {
         //Recheck available Location
         i_availableLocation = i_tiles.Keys.Where(x => !i_tiles[x].hasBall).ToList();
@@ -120,11 +129,13 @@ public class BallManager : Singleton<BallManager>
         int rand = UnityEngine.Random.Range(0, i_availableLocation.Count);
         Vector2Int location = i_availableLocation[rand];
         Ball ballSpawned = ObjectPool.Instance.TakeObject("ball").GetComponent<Ball>();
-        ballSpawned.gameObject.transform.position = i_tiles[location].transform.position;
-        ballSpawned.SetColor(i_color);
-        ballSpawned.SetLocation(location);
+        ballSpawned.gameObject.transform.position = new Vector3(i_tiles[location].transform.position.x, i_tiles[location].transform.position.y, 0);
+        ballSpawned.Setup(_gridManager, location, i_color, i_isGhost);
+        //ballSpawned.SetColor(i_color);
+        //ballSpawned.SetLocation(location);
+        //ballSpawned.SetGhostMode(i_isGhost);
 
-        if (i_isShowed)
+        if (i_isShowed || i_availableLocation.Count == 1)
         {
             ballSpawned.gameObject.transform.localScale = Vector3.one * MAXIMUM;
             ballSpawned.SetFinished(true);
@@ -145,10 +156,10 @@ public class BallManager : Singleton<BallManager>
         while (_waitingBall.Count > 0)
         {
             Ball ball = _waitingBall.Dequeue();
-            if(!GridManager.Instance.GetTile(ball.GetLocation()).isBlocked)
+            if(!_gridManager.GetTile(ball.GetLocation()).isBlocked)
             {
                 ball.FinishBall();
-                GridManager.Instance.CheckScore(GridManager.Instance.GetTile(ball.GetLocation()));
+                _gridManager.CheckScore(_gridManager.GetTile(ball.GetLocation()));
             }
             else
             {
@@ -164,7 +175,7 @@ public class BallManager : Singleton<BallManager>
         Tile currentTile = i_hitInfo.collider.GetComponent<Tile>();
         if (_selectedTileWithBall == null)
         {
-            if (currentTile.GetBall() != null)
+            if (currentTile.isBlocked)
             {
                 _selectedTileWithBall = currentTile;
                 _selectedTileWithBall.GetBall().Selected(true);
@@ -173,30 +184,54 @@ public class BallManager : Singleton<BallManager>
         }
         else if (!currentTile.isBlocked)
         {
-            _paths = _pathFinding.FindPath(_selectedTileWithBall, currentTile);
+            _paths = _pathFinding.FindPath(_gridManager.GetTiles(), _selectedTileWithBall, currentTile);
             if (_paths.Count < 1)
             {
-                //Todo cancel select
                 Debug.Log("can;t move, zero path");
                 SoundManager.Instance.PlaySFX(SFX.CANNOTMOVE);
             }
             else
             {
+                GameManager.Instance.ChangeGameState(GAMESTATE.MOVINGBALL);
+                
+                //Try to remove queue
+                if(currentTile.hasBall)
+                {
+                    while(true)
+                    {
+                        Ball tmpBall = _waitingBall.Dequeue();
+                        if(tmpBall != currentTile.GetBall())
+                        {
+                            _waitingBall.Enqueue(tmpBall);
+                        }
+                        else
+                        {
+                            tmpBall.gameObject.SetActive(false);
+                            break;
+                        }
+                    }
+                }
+
                 Ball ball = _selectedTileWithBall.GetBall();
                 currentTile.SetBall(ball);
                 currentTile.SetShowed(true);
 
-                _selectedTileWithBall.GetBall().Selected(false);
-                _selectedTileWithBall.GetBall().transform.localScale = Vector3.one * MINIMUM;
-                _targetMove = new Vector3Int().CreateFromVector2Int(_paths[0].GetLocation());
-                _paths.RemoveAt(0);
-                _isDoMove = true;
                 SoundManager.Instance.PlaySFX(SFX.MOVE);
+
+                _selectedTileWithBall.GetBall().Selected(false);
+                _selectedTileWithBall.GetBall().transform.DOScale(Vector3.one * MINIMUM * 1.5f, 0.2f).OnComplete(() =>
+                {
+                    _targetMove = new Vector3Int().CreateFromVector2Int(_paths[0].GetLocation());
+                    _paths.RemoveAt(0);
+                    _isDoMove = true;
+                }).Play();
+                
 
             }
         }
         else
         {
+            _selectedTileWithBall.GetBall().Selected(false);
             _selectedTileWithBall = currentTile;
             _selectedTileWithBall.GetBall().Selected(true);
             SoundManager.Instance.PlaySFX(SFX.SELECTED);
@@ -205,6 +240,7 @@ public class BallManager : Singleton<BallManager>
 
     public void DestroyBall(List<Tile> i_tiles)
     {
+        SoundManager.Instance.PlaySFX(SFX.CONFETTI);
         foreach (Tile tile in i_tiles)
         {
             tile.GetBall().gameObject.SetActive(false);

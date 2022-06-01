@@ -4,31 +4,57 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class GridManager : Singleton<GridManager>
+public class GridManager : MonoBehaviour
 {
     public int WIDTH = 9;
     public int HEIGHT = 9;
 
+    private BallManager _ballManager;
     private Dictionary<Vector2Int, Tile> _tiles = new Dictionary<Vector2Int, Tile>();
-
-    private void Awake()
+    private void Start()
     {
-        GenerateTiles();
+        _ballManager = GameObject.FindObjectOfType<BallManager>();
+    }
+
+    private void OnEnable()
+    {
+        EventManager.Instance.RegisterEvent(GAMESTATE.SETUP, GenerateTiles);
+    }
+
+    private void OnDisable()
+    {
+        EventManager.Instance.RemoveEvent(GAMESTATE.SETUP, GenerateTiles);
     }
 
     private void GenerateTiles()
     {
-        for(int i = 0; i < WIDTH; i++)
+        if(_tiles.Count < 1)
         {
-            for(int y = 0; y < HEIGHT; y++)
+            for (int i = 0; i < WIDTH; i++)
             {
-                Tile tile = ObjectPool.Instance.TakeObject("tile").GetComponent<Tile>();
-                tile.SetLocation(i, y);
-                tile.gameObject.name = $"tile {i} - {y}";
-                tile.gameObject.transform.position = new Vector3(i, y, -0.1f);
-                _tiles.Add(new Vector2Int(i, y), tile);
-            }    
-        }    
+                for (int y = 0; y < HEIGHT; y++)
+                {
+                    Tile tile = ObjectPool.Instance.TakeObject("tile").GetComponent<Tile>();
+                    tile.SetLocation(i, y);
+                    tile.gameObject.name = $"tile {i} - {y}";
+                    tile.gameObject.transform.position = new Vector3(i, y, -0.1f);
+                    _tiles.Add(new Vector2Int(i, y), tile);
+                }
+            }
+        }
+        else
+        {
+            //Rest tile
+            for (int i = 0; i < WIDTH; i++)
+            {
+                for (int y = 0; y < HEIGHT; y++)
+                {
+                    Vector2Int location = new Vector2Int(i, y);
+                    _tiles[location].ResetTile();
+                }
+            }
+        }
+        GameManager.Instance.ChangeGameState(GAMESTATE.STARTING);
     }
     public Tile GetTile(Vector2Int i_location)
     {
@@ -239,7 +265,7 @@ public class GridManager : Singleton<GridManager>
 
         if(finishList.Count >= 5)
         {
-            BallManager.Instance.DestroyBall(finishList);
+            _ballManager.DestroyBall(finishList);
         }    
     }
     private bool isInside(Vector2Int i_location)

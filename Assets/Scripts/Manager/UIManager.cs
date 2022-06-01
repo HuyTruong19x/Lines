@@ -22,19 +22,25 @@ public class UIManager : Singleton<UIManager>
     //Queue ball
     [SerializeField]
     List<RawImage> _balls;
+    [SerializeField]
+    GameObject _gameOverPopup;
 
     GameData _gameData;
     private void OnEnable()
     {
-        GameManager.Instance.OnGameStart += OnStart;
+        EventManager.Instance.RegisterEvent(GAMESTATE.STARTING, OnStart);
+        EventManager.Instance.RegisterEvent(GAMESTATE.GAMEOVER, ShowGameOver);
     }
     private void OnDisable()
     {
-        GameManager.Instance.OnGameStart -= OnStart;
+        EventManager.Instance.RemoveEvent(GAMESTATE.STARTING, OnStart);
+        EventManager.Instance.RemoveEvent(GAMESTATE.GAMEOVER, ShowGameOver);
     }
     private void OnStart()
     {
+        _currentTime = 0;
         _isPlaying = true;
+        ShowScore(0);
 
         _gameData = FindObjectOfType<GameData>();
         if(_gameData != null)
@@ -71,11 +77,17 @@ public class UIManager : Singleton<UIManager>
     {
         _hightScore.text = i_hightScore.ToString("00000");
     }    
-
+    public void ShowGameOver()
+    {
+        SoundManager.Instance.PlaySFX(SFX.GAMEOVER);
+        _gameOverPopup.SetActive(true);
+        _gameOverPopup.GetComponent<IPopup>().Open(null);
+    }
     public void SetBallQueue(List<Color> i_colors)
     {
         if (i_colors.Count < _balls.Count)
             return;
+        //Set aplha = 1 to make sure color always display
         for(int i = 0; i < _balls.Count; i++)
         {
             _balls[i].color = new Color(i_colors[i].r, i_colors[i].g, i_colors[i].b, 1);

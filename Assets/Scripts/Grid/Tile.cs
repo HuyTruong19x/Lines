@@ -17,6 +17,10 @@ public class Tile : MonoBehaviour
   
     public void SetBall(Ball i_ball)
     {
+        if(_ball != null)
+        {
+            _ball = null;
+        }
         _ball = i_ball;
     }    
     public void SetShowed(bool i_isShowed)
@@ -43,6 +47,13 @@ public class Tile : MonoBehaviour
     public Tile GetPreviousTile()
     {
         return _previousTile;
-    }    
+    }
+
+    public void ResetTile()
+    {
+        _ball?.gameObject.SetActive(false);
+        _ball = null;
+        _isShowed = false;
+    }
 
 }

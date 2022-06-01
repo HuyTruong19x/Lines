@@ -5,4 +5,6 @@ using UnityEngine;
 public class GameSetting : ScriptableObject
 {
     public List<Color> Colors;
+    [Range(1, 100)]
+    public int RateSpawnGhostBall;
 }

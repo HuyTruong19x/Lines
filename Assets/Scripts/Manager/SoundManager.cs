@@ -65,6 +65,7 @@ public enum SFX
 {
     SELECTED,
     MOVE,
+    CONFETTI,
     GAMEOVER,
     CANNOTMOVE,
 }

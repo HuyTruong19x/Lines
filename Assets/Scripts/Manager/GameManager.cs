@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,20 +15,14 @@ public class GameManager : Singleton<GameManager>
     private int _score;
     private const int INSCREASESCORE = 10;
 
-    #region Game Event
-    public UnityAction OnGameStart;
-    public UnityAction OnEndTurn;
-    public UnityAction OnWaitingTurn;
-    #endregion
-
-
     public int NumSpawn = 3;
     public bool CanPlay { get { return !_isGameOver && _gameState == GAMESTATE.PLAYING; } }
 
     private void Start()
     {
-        OnGameStart?.Invoke();
+        EventManager.Instance.InvokeEvent(GAMESTATE.SETUP);
     }
+
 
     public Color GetRandomColor()
     {
@@ -38,6 +33,10 @@ public class GameManager : Singleton<GameManager>
         }    
         return _gameSetting.Colors[UnityEngine.Random.Range(0, _gameSetting.Colors.Count)];
     }    
+    public int GetRateSpawnGhostBall()
+    {
+        return _gameSetting.RateSpawnGhostBall;
+    }
     public void EndTurn()
     {
         ChangeGameState(GAMESTATE.ENDTURN);
@@ -45,14 +44,12 @@ public class GameManager : Singleton<GameManager>
     public void ChangeGameState(GAMESTATE i_gameState)
     {
         _gameState = i_gameState;
-
-        switch(_gameState)
+        if(i_gameState == GAMESTATE.GAMEOVER)
         {
-            case GAMESTATE.PLAYING:break;
-            case GAMESTATE.ENDTURN: OnEndTurn?.Invoke(); break;
-            case GAMESTATE.WAITING: OnWaitingTurn?.Invoke(); break;
-            case GAMESTATE.GAMEOVER: _isGameOver = true; Debug.LogError("Game Over"); break;
-        }    
+            _isGameOver = true;
+            GameObject.FindObjectOfType<GameData>()?.UpdateHightScore(_score);
+        }
+        EventManager.Instance.InvokeEvent(i_gameState);
     }    
 
     public void IncreaseScore()
@@ -60,12 +57,19 @@ public class GameManager : Singleton<GameManager>
         _score += INSCREASESCORE;
         UIManager.Instance.ShowScore(_score);
     }    
+    public int GetScore()
+    {
+        return _score;
+    }
 }
 
 public enum GAMESTATE
 {
     NONE,
+    SETUP,
+    STARTING,
     WAITING,
+    MOVINGBALL,
     PLAYING,
     ENDTURN,
     GAMEOVER

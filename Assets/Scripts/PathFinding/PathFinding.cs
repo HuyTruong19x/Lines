@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class PathFinding
 {
-    public List<Tile> FindPath(Tile start, Tile end)
+    public List<Tile> FindPath(Dictionary<Vector2Int, Tile> i_tiles, Tile start, Tile end)
     {
         List<Tile> openList = new List<Tile>();
         List<Tile> closedList = new List<Tile>();
@@ -31,7 +31,7 @@ public class PathFinding
 
             if (!start.GetBall().isGhost)
             {
-                foreach (var tile in GetNeighbourTile(currentTile))
+                foreach (var tile in GetNeighbourTile(i_tiles, currentTile))
                 {
                     if (tile.isBlocked || closedList.Contains(tile)) continue;
 
@@ -48,7 +48,7 @@ public class PathFinding
             }
             else
             {
-                foreach (var tile in GetNeighbourTile(currentTile))
+                foreach (var tile in GetNeighbourTile(i_tiles, currentTile))
                 {
                     if (closedList.Contains(tile)) continue;
 
@@ -75,9 +75,9 @@ public class PathFinding
         return Mathf.Abs(start.GetLocation().x - tile.GetLocation().x) + Mathf.Abs(start.GetLocation().y - tile.GetLocation().y);
     }
 
-    private List<Tile> GetNeighbourTile(Tile currentTile)
+    private List<Tile> GetNeighbourTile(Dictionary<Vector2Int, Tile> i_tiles, Tile currentTile)
     {
-        var listTile = GridManager.Instance.GetTiles();
+        var listTile = i_tiles;
 
         List<Tile> neighbours = new List<Tile>();
 

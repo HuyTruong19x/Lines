@@ -8,6 +8,12 @@ public class InputController : MonoBehaviour
     
     private Ray _ray;
     private RaycastHit _hitInfo;
+    private BallManager _ballManager;
+
+    private void Awake()
+    {
+        _ballManager = GameObject.FindObjectOfType<BallManager>();
+    }
 
     private void Update()
     {
@@ -47,6 +53,6 @@ public class InputController : MonoBehaviour
 #endif
     private void HandleRaycastHit(RaycastHit i_hitInfo)
     {
-        BallManager.Instance.HandleBallMoveMent(i_hitInfo);
+        _ballManager.HandleBallMoveMent(i_hitInfo);
     }    
 }
