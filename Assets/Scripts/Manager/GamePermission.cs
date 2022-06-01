@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 #if UNITY_ANDROID
 using UnityEngine.Android;
 #endif
@@ -14,11 +15,5 @@ public class GamePermission : MonoBehaviour
             Permission.RequestUserPermission(Permission.Camera);
         }
 #endif
-        StartCoroutine(Request());
-    }
-    IEnumerator Request()
-    {
-        yield return Application.RequestUserAuthorization(UserAuthorization.WebCam);
-        Permission.RequestUserPermission(Permission.Camera);
     }
 }

@@ -9,8 +9,8 @@ public class GameManager : Singleton<GameManager>
     [SerializeField]
     private GameSetting _gameSetting;
     private bool _isGameOver;
-    [SerializeField]
     private GAMESTATE _gameState = GAMESTATE.PLAYING;
+    private GAMEMODE _gameMode = GAMEMODE.ARMODE;
 
     //Score
     private int _score;
@@ -18,11 +18,12 @@ public class GameManager : Singleton<GameManager>
 
     public int NumSpawn = 3;
     public bool CanPlay { get { return !_isGameOver && _gameState == GAMESTATE.PLAYING; } }
+    public GAMEMODE GameMode { get { return _gameMode; } }
 
     private void Start()
     {
         GameObject.FindObjectOfType<GamePermission>().RequestCameraPermission();
-        EventManager.Instance.InvokeEvent(GAMESTATE.SETUP);
+        EventManager.Instance.InvokeEvent(GAMEEVENT.SETUP);
     }
 
 
@@ -51,8 +52,13 @@ public class GameManager : Singleton<GameManager>
             _isGameOver = true;
             GameObject.FindObjectOfType<GameData>()?.UpdateHightScore(_score);
         }
-        EventManager.Instance.InvokeEvent(i_gameState);
+        EventManager.Instance.InvokeEvent((GAMEEVENT)i_gameState);
     }    
+    public void ChangeGameMode(GAMEMODE i_gameMode)
+    {
+        _gameMode = i_gameMode;
+        EventManager.Instance.InvokeEvent(i_gameMode == GAMEMODE.ARMODE ? GAMEEVENT.TURNONARMODE : GAMEEVENT.TURNOFFARMODE);
+    }
 
     public void IncreaseScore()
     {
@@ -75,4 +81,10 @@ public enum GAMESTATE
     PLAYING,
     ENDTURN,
     GAMEOVER
+}
+
+public enum GAMEMODE
+{
+    NONE,
+    ARMODE
 }

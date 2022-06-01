@@ -28,13 +28,13 @@ public class UIManager : Singleton<UIManager>
     GameData _gameData;
     private void OnEnable()
     {
-        EventManager.Instance.RegisterEvent(GAMESTATE.STARTING, OnStart);
-        EventManager.Instance.RegisterEvent(GAMESTATE.GAMEOVER, ShowGameOver);
+        EventManager.Instance.RegisterEvent(GAMEEVENT.STARTING, OnStart);
+        EventManager.Instance.RegisterEvent(GAMEEVENT.GAMEOVER, ShowGameOver);
     }
     private void OnDisable()
     {
-        EventManager.Instance.RemoveEvent(GAMESTATE.STARTING, OnStart);
-        EventManager.Instance.RemoveEvent(GAMESTATE.GAMEOVER, ShowGameOver);
+        EventManager.Instance.RemoveEvent(GAMEEVENT.STARTING, OnStart);
+        EventManager.Instance.RemoveEvent(GAMEEVENT.GAMEOVER, ShowGameOver);
     }
     private void OnStart()
     {

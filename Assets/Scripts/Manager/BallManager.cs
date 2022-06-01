@@ -21,16 +21,16 @@ public class BallManager : MonoBehaviour
 
     private void OnEnable()
     {
-        EventManager.Instance.RegisterEvent(GAMESTATE.STARTING, SetupBall);
-        EventManager.Instance.RegisterEvent(GAMESTATE.WAITING, DequeueBall);
-        EventManager.Instance.RegisterEvent(GAMESTATE.ENDTURN, GrowUpBall);
+        EventManager.Instance.RegisterEvent(GAMEEVENT.STARTING, SetupBall);
+        EventManager.Instance.RegisterEvent(GAMEEVENT.WAITING, DequeueBall);
+        EventManager.Instance.RegisterEvent(GAMEEVENT.ENDTURN, GrowUpBall);
     }
 
     private void OnDisable()
     {
-        EventManager.Instance.RemoveEvent(GAMESTATE.STARTING, SetupBall);
-        EventManager.Instance.RemoveEvent(GAMESTATE.WAITING, DequeueBall);
-        EventManager.Instance.RemoveEvent(GAMESTATE.ENDTURN, GrowUpBall);
+        EventManager.Instance.RemoveEvent(GAMEEVENT.STARTING, SetupBall);
+        EventManager.Instance.RemoveEvent(GAMEEVENT.WAITING, DequeueBall);
+        EventManager.Instance.RemoveEvent(GAMEEVENT.ENDTURN, GrowUpBall);
     }
     private void Awake()
     {

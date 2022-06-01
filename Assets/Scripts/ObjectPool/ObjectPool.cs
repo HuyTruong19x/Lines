@@ -30,4 +30,12 @@ public class ObjectPool : Singleton<ObjectPool>
         }    
         return null;
     }    
+    public void CleanPool()
+    {
+        for (int i = 0; i < _objects.Count; i++)
+        {
+            Destroy(_objects[i]);
+        }
+        _objects.Clear();
+    }
 }

@@ -5,8 +5,8 @@ using UnityEngine.Events;
 
 public class EventManager : Singleton<EventManager>
 {
-    Dictionary<GAMESTATE, UnityAction> _actions = new Dictionary<GAMESTATE, UnityAction>();
-    public void RegisterEvent(GAMESTATE i_key, UnityAction i_action)
+    Dictionary<GAMEEVENT, UnityAction> _actions = new Dictionary<GAMEEVENT, UnityAction>();
+    public void RegisterEvent(GAMEEVENT i_key, UnityAction i_action)
     {
         if (_actions.ContainsKey(i_key))
         {
@@ -17,7 +17,7 @@ public class EventManager : Singleton<EventManager>
             _actions.Add(i_key, i_action);
         }
     }
-    public void RemoveEvent(GAMESTATE i_key, UnityAction i_action)
+    public void RemoveEvent(GAMEEVENT i_key, UnityAction i_action)
     {
         if (_actions.ContainsKey(i_key))
         {
@@ -25,11 +25,25 @@ public class EventManager : Singleton<EventManager>
         }
     }
 
-    public void InvokeEvent(GAMESTATE i_key)
+    public void InvokeEvent(GAMEEVENT i_key)
     {
         if(_actions.ContainsKey(i_key))
         {
             _actions[i_key]?.Invoke();
         }
     }
+}
+
+public enum GAMEEVENT
+{
+    NONE,
+    SETUP,
+    STARTING,
+    WAITING,
+    MOVINGBALL,
+    PLAYING,
+    ENDTURN,
+    GAMEOVER,
+    TURNONARMODE,
+    TURNOFFARMODE,
 }
