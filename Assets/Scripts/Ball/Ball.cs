@@ -21,7 +21,7 @@ public class Ball : MonoBehaviour
     private float _smoothMove = 0.1f;
     private List<Tile> _paths;
     private bool _isDoMove = false;
-    private Vector3Int _targetMove;
+    private Vector3 _targetMove;
 
     public bool IsGhost { get { return _ballType == BALLTYPE.GHOST; } }
     public Color Color { get{ return _color; } }
@@ -36,22 +36,21 @@ public class Ball : MonoBehaviour
         if (_isDoMove)
         {
             transform.position = Vector3.MoveTowards(transform.position, _targetMove, _smoothMove);
-            if (Vector3.Distance(transform.position, _targetMove) < 0.1f)
+            if (Vector2.Distance(transform.position, _targetMove) < 0.2f)
             {
                 if (_paths.Count < 1)
                 {
                     _isDoMove = false;
                     transform.position = _targetMove;
-                    transform.DOScale(Vector3.one * BallManager.MAXIMUM, 0.3f).OnComplete(() =>
-                    {
-                        _gridManager.CheckScore(_gridManager.GetTile(new Vector2Int(_targetMove.x, _targetMove.y)));
-                        GameManager.Instance.EndTurn();
-                    }).Play();
-
+                    transform.DOScale(Vector3.one * BallManager.MAXIMUM, 0.3f);
+                    _gridManager.CheckScore(_gridManager.GetTile(_location));
+                    GameManager.Instance.EndTurn();
                 }
                 if (_paths.Count > 0)
                 {
-                    _targetMove = new Vector3Int().CreateFromVector2Int(_paths[0].GetLocation());
+                    _location = _paths[0].GetLocation();
+                    _targetMove = _paths[0].transform.position;
+                    _targetMove.z = 0;
                     _paths.RemoveAt(0);
                 }
             }
@@ -87,7 +86,9 @@ public class Ball : MonoBehaviour
         _paths = i_paths;
         transform.DOScale(Vector3.one * BallManager.MINIMUM * 1.5f, 0.2f).OnComplete(() =>
         {
-            _targetMove = new Vector3Int().CreateFromVector2Int(_paths[0].GetLocation());
+            _location = _paths[0].GetLocation();
+            _targetMove = _paths[0].transform.position;
+            _targetMove.z = 0;
             _paths.RemoveAt(0);
             _isDoMove = true;
         }).Play();
@@ -101,6 +102,18 @@ public class Ball : MonoBehaviour
         _ghostObject?.SetActive(i_ballType == BALLTYPE.GHOST);
         _ballType = i_ballType;
     }
+
+    public void UpdateBallSize()
+    {
+        if(_isFinished)
+        {
+            transform.localScale = Vector3.one * BallManager.MAXIMUM;
+        }    
+        else
+        {
+            transform.localScale = Vector3.one * BallManager.MINIMUM;
+        }    
+    }    
     public void SetColor(Color i_color)
     {
         _color = i_color;

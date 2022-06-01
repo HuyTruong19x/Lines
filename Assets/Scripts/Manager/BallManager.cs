@@ -5,8 +5,8 @@ using UnityEngine;
 using DG.Tweening;
 public class BallManager : MonoBehaviour
 {
-    public const float MAXIMUM = 0.8f;
-    public const float MINIMUM = 0.2f;
+    public static float MAXIMUM = 0.8f;
+    public static float MINIMUM = 0.2f;
     private GridManager _gridManager;
     private UIManager _uiManager;
     private bool _isInitialized = false;
@@ -63,8 +63,11 @@ public class BallManager : MonoBehaviour
     }    
     private void SetupBall()
     {
-        if(_isInitialized)
+        MAXIMUM = 0.8f * _gridManager.GetTile(new Vector2Int(0, 0)).transform.localScale.x;
+        MINIMUM = 0.2f * _gridManager.GetTile(new Vector2Int(0, 0)).transform.localScale.x;
+        if (_isInitialized)
         {
+            UpdateBallSize();
             GameManager.Instance.ChangeGameState(GAMESTATE.PLAYING);
             return;
         }    
@@ -140,7 +143,7 @@ public class BallManager : MonoBehaviour
         i_tiles[location].SetBall(ballSpawned);
     }    
 
-    void GrowUpBall()
+    private void GrowUpBall()
     {
         while (_waitingBall.Count > 0)
         {
@@ -157,6 +160,18 @@ public class BallManager : MonoBehaviour
         }
         GameManager.Instance.ChangeGameState(GAMESTATE.WAITING);
     }
+
+    private void UpdateBallSize()
+    {
+        var tiles = _gridManager.GetTiles();
+        foreach (var tile in tiles)
+        {
+            if(tile.Value.hasBall)
+            {
+                tile.Value.GetBall().UpdateBallSize();
+            }    
+        }    
+    }    
 
     //Handle ball movement
     public void HandleBallMoveMent(RaycastHit i_hitInfo)

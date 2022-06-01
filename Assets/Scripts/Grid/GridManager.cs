@@ -12,7 +12,9 @@ public class GridManager : MonoBehaviour
 
     private BallManager _ballManager;
     private Dictionary<Vector2Int, Tile> _tiles = new Dictionary<Vector2Int, Tile>();
-
+    private float _maxTileSize = 0.9f;
+    private float _minTileSize = 0.2f;
+    private float _offset = 1.1f;
     //AR mode
     private ARRaycastManager _arRaycastManager;
     private List<ARRaycastHit> _hits = new List<ARRaycastHit>();
@@ -51,19 +53,16 @@ public class GridManager : MonoBehaviour
                     return;
                 }    
                 Touch touch = Input.GetTouch(0);
-                if(_arRaycastManager.Raycast(touch.position, _hits))
+                if(_arRaycastManager.Raycast(touch.position, _hits, UnityEngine.XR.ARSubsystems.TrackableType.Planes))
                 {
                     if(touch.phase == TouchPhase.Ended)
                     {
-                        Ray ray = Camera.main.ScreenPointToRay(touch.position);
-                        if (Physics.Raycast(ray, out _hitInfo))
-                        {
-                            _firstTileLocation = new Vector2Int((int)_hitInfo.collider.transform.position.x, (int)_hitInfo.collider.transform.position.y);
-                            _isDetecting = false;
-                            GenerateTiles(_firstTileLocation.x, _firstTileLocation.y);
-                            GameManager.Instance.ChangeGameState(GAMESTATE.STARTING);
-                            Debug.Log("Finish detect plane");
-                        }    
+                        _firstTileLocation = new Vector2Int((int)_hits[0].pose.position.x, (int)_hits[0].pose.position.y);
+                        _isDetecting = false;
+                        GenerateTiles(_firstTileLocation.x, _firstTileLocation.y, Vector3.one * _minTileSize);
+                        _tiles[new Vector2Int(0,0)].transform.parent.rotation = _hits[0].pose.rotation;
+                        GameManager.Instance.ChangeGameState(GAMESTATE.STARTING);
+                        Debug.Log("Finish detect plane");
                     }    
                 }
             }    
@@ -72,20 +71,28 @@ public class GridManager : MonoBehaviour
 
     private void UpdateGameMode()
     {
+#if !UNITY_EDITOR
         if(GameManager.Instance.GameMode == GAMEMODE.ARMODE)
         {
             if (_firstTileLocation != Vector2Int.zero)
             {
-                GenerateTiles(_firstTileLocation.x, _firstTileLocation.y);
+                GenerateTiles(_firstTileLocation.x, _firstTileLocation.y, Vector3.one * _minTileSize);
             }
             else
             {
+                //Hide tile before detecting
+                foreach(var tile in _tiles)
+                {
+                    tile.Value.gameObject.SetActive(false);
+                }    
                 _isDetecting = true;
             }
         }    
         else
+#endif
         {
-            GenerateTiles(0, 0);
+            GenerateTiles(0, 0, Vector3.one * _maxTileSize);
+            _tiles[new Vector2Int(0, 0)].transform.parent.rotation = Quaternion.Euler(new Vector3(0,0,0));
         }    
     }    
     private void GenerateTiles()
@@ -94,7 +101,7 @@ public class GridManager : MonoBehaviour
         UpdateGameMode();  
     }
 
-    private void GenerateTiles(int i_StartX, int i_StartY)
+    private void GenerateTiles(int i_StartX, int i_StartY, Vector3 i_scale)
     {
         if (_tiles.Count < 1)
         {
@@ -105,7 +112,8 @@ public class GridManager : MonoBehaviour
                     Tile tile = ObjectPool.Instance.TakeObject("tile").GetComponent<Tile>();
                     tile.SetLocation(i, y);
                     tile.gameObject.name = $"tile {i} - {y}";
-                    tile.gameObject.transform.position = new Vector3(i_StartX + i, i_StartY + y, -0.1f);
+                    tile.gameObject.transform.localScale = i_scale;
+                    tile.gameObject.transform.position = new Vector3(i_StartX + i * i_scale.x * _offset, i_StartY + y * i_scale.y * _offset, -0.1f);
                     _tiles.Add(new Vector2Int(i, y), tile);
                 }
             }
@@ -118,7 +126,12 @@ public class GridManager : MonoBehaviour
                 for (int y = 0; y < HEIGHT; y++)
                 {
                     Vector2Int location = new Vector2Int(i, y);
-                    _tiles[location].gameObject.transform.position = new Vector3(i_StartX + i, i_StartY + y, -0.1f);
+                    if(!_tiles[location].gameObject.activeSelf)
+                    {
+                        _tiles[location].gameObject.SetActive(true);
+                    }
+                    _tiles[location].gameObject.transform.localScale = i_scale;
+                    _tiles[location].gameObject.transform.position = new Vector3(i_StartX + i * i_scale.x * _offset, i_StartY + y * i_scale.y * _offset, -0.1f);
                     _tiles[location].UpdateBallPosition();
                 }
             }

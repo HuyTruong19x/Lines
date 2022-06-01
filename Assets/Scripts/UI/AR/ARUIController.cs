@@ -36,14 +36,7 @@ public class ARUIController : MonoBehaviour
 
     public void Check()
     {
-        Camera.main.transform.parent.position = new Vector3(4.03f, 5.06f, -10f);
-        Camera.main.transform.localPosition = Vector3.zero;
-        Camera.main.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
-        Debug.Log("Kuzan pos " + Camera.main.transform.localPosition);
-        Debug.Log("Kuzan rot " + Camera.main.transform.localRotation.eulerAngles);
-        Debug.Log("Kuzan cal " + Camera.main.transform.localScale);
-        Debug.Log("Kuzan parent p " + Camera.main.transform.parent.position);
-        Debug.Log("Kuzan parent r " + Camera.main.transform.parent.rotation.eulerAngles);
-        Debug.Log("Kuzan parent c" + Camera.main.transform.parent.localScale);
+        GridManager grid = GameObject.FindObjectOfType<GridManager>();
+        Debug.Log("Grid parrent : " + grid.GetTile(new Vector2Int(0, 0)).gameObject.transform.parent.rotation.eulerAngles);
     }
 }

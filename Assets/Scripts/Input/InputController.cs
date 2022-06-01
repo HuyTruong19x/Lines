@@ -14,7 +14,7 @@ public class InputController : MonoBehaviour
     private void Awake()
     {
         _ballManager = GameObject.FindObjectOfType<BallManager>();
-        _cameraController = GameObject.FindObjectOfType<CameraController>();
+        
     }
 
     private void Update()
@@ -29,6 +29,10 @@ public class InputController : MonoBehaviour
     {
         if(Input.GetMouseButtonDown(0))
         {
+            if(_cameraController == null)
+            {
+                _cameraController = GameObject.FindObjectOfType<CameraController>();
+            }    
             Camera currentCamera = _cameraController.GetCamera();
             if(currentCamera != null)
             {

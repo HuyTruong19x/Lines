@@ -47,7 +47,6 @@ public class GameManager : Singleton<GameManager>
         else if(i_gameState == GAMESTATE.SETUP)
         {
             _isGameOver = false;
-            _uiManager = GameObject.FindObjectOfType<UIManager>();
         }    
         EventManager.Instance.InvokeEvent((GAMEEVENT)i_gameState);
     }    
@@ -63,6 +62,10 @@ public class GameManager : Singleton<GameManager>
     public void IncreaseScore()
     {
         _score += INSCREASESCORE;
+        if(_uiManager == null)
+        {
+            _uiManager = GameObject.FindObjectOfType<UIManager>();
+        }    
         _uiManager?.ShowScore(_score);
     }    
     public int GetScore()
