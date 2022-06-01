@@ -48,10 +48,14 @@ public class InputController : MonoBehaviour
             Touch touch = Input.GetTouch(0);
             if(touch.phase == TouchPhase.Ended)
             {
-                _ray = Camera.main.ScreenPointToRay(touch.position);
-                if (Physics.Raycast(_ray, out _hitInfo))
+                Camera currentCamera = _cameraController.GetCamera();
+                if(currentCamera != null)
                 {
-                    HandleRaycastHit(_hitInfo);
+                    _ray = currentCamera.ScreenPointToRay(touch.position);
+                    if (Physics.Raycast(_ray, out _hitInfo))
+                    {
+                        HandleRaycastHit(_hitInfo);
+                    }
                 }
             }    
         }    

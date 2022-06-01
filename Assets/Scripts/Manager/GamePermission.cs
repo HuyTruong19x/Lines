@@ -15,6 +15,10 @@ public class GamePermission : MonoBehaviour
             Permission.RequestUserPermission(Permission.Camera);
             i_callback?.Invoke(Permission.HasUserAuthorizedPermission(Permission.Camera));
         }
+        else
+        {
+            i_callback?.Invoke(true);
+        }    
 #endif
     }
 }
