@@ -9,6 +9,7 @@ public class GameManager : Singleton<GameManager>
     [SerializeField]
     private GameSetting _gameSetting;
     private bool _isGameOver;
+    [SerializeField]
     private GAMESTATE _gameState = GAMESTATE.PLAYING;
 
     //Score
@@ -20,6 +21,7 @@ public class GameManager : Singleton<GameManager>
 
     private void Start()
     {
+        GameObject.FindObjectOfType<GamePermission>().RequestCameraPermission();
         EventManager.Instance.InvokeEvent(GAMESTATE.SETUP);
     }
 

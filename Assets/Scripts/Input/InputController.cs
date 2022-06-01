@@ -22,7 +22,7 @@ public class InputController : MonoBehaviour
             InputInteract();
         }    
     }
-#if UNITY_STANDALONE_WIN
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR
     private void InputInteract()
     {
         if(Input.GetMouseButtonDown(0))
