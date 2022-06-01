@@ -8,6 +8,7 @@ public class BallManager : MonoBehaviour
     public const float MAXIMUM = 0.8f;
     public const float MINIMUM = 0.2f;
     private GridManager _gridManager;
+    private UIManager _uiManager;
     private bool _isInitialized = false;
     private Queue<Ball> _waitingBall = new Queue<Ball>();
     private Queue<Color> _waitingColor = new Queue<Color>();
@@ -35,6 +36,7 @@ public class BallManager : MonoBehaviour
     {
         _pathFinding = new PathFinding();
         _gridManager = GameObject.FindObjectOfType<GridManager>();
+        _uiManager = GameObject.FindObjectOfType<UIManager>();
     }
     private void ChangedGameMode()
     {
@@ -57,7 +59,7 @@ public class BallManager : MonoBehaviour
     {
         _isInitialized = false;
         //Random first queue
-        _waitingBall.Clear();
+        _waitingColor.Clear();
         List<Color> colors = new List<Color>();
         for (int i = 0; i < 3; i++)
         {
@@ -110,7 +112,7 @@ public class BallManager : MonoBehaviour
             _waitingColor.Enqueue(col);
             colors.Add(col);
         }
-        UIManager.Instance.SetBallQueue(colors);
+        _uiManager.SetBallQueue(colors);
         GameManager.Instance.ChangeGameState(GAMESTATE.PLAYING);
     }
 

@@ -4,6 +4,7 @@ public class GameManager : Singleton<GameManager>
 {
     [SerializeField]
     private GameSetting _gameSetting;
+    private UIManager _uiManager;
     private bool _isGameOver;
     [SerializeField]
     private GAMESTATE _gameState = GAMESTATE.PLAYING;
@@ -46,19 +47,23 @@ public class GameManager : Singleton<GameManager>
         else if(i_gameState == GAMESTATE.SETUP)
         {
             _isGameOver = false;
+            _uiManager = GameObject.FindObjectOfType<UIManager>();
         }    
         EventManager.Instance.InvokeEvent((GAMEEVENT)i_gameState);
     }    
-    public void ChangeGameMode(GAMEMODE i_gameMode)
+    public void ChangeGameMode(GAMEMODE i_gameMode, bool i_isTriggerEvent = true)
     {
         _gameMode = i_gameMode;
-        EventManager.Instance.InvokeEvent(GAMEEVENT.CHANGEDGAMEMODE);
+        if(i_isTriggerEvent)
+        {
+            EventManager.Instance.InvokeEvent(GAMEEVENT.CHANGEDGAMEMODE);
+        }    
     }
 
     public void IncreaseScore()
     {
         _score += INSCREASESCORE;
-        UIManager.Instance.ShowScore(_score);
+        _uiManager?.ShowScore(_score);
     }    
     public int GetScore()
     {

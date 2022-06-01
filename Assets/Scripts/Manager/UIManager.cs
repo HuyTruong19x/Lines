@@ -6,7 +6,7 @@ using System;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-public class UIManager : Singleton<UIManager>
+public class UIManager : MonoBehaviour
 {
     //Score
     [SerializeField]
@@ -101,6 +101,7 @@ public class UIManager : Singleton<UIManager>
         {
             if(hasPermission)
             {
+                GameManager.Instance.ChangeGameMode(GAMEMODE.ARMODE, false);
                 SceneManager.LoadScene(1);
             }    
             else
