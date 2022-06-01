@@ -9,10 +9,12 @@ public class InputController : MonoBehaviour
     private Ray _ray;
     private RaycastHit _hitInfo;
     private BallManager _ballManager;
+    private CameraController _cameraController;
 
     private void Awake()
     {
         _ballManager = GameObject.FindObjectOfType<BallManager>();
+        _cameraController = GameObject.FindObjectOfType<CameraController>();
     }
 
     private void Update()
@@ -27,7 +29,7 @@ public class InputController : MonoBehaviour
     {
         if(Input.GetMouseButtonDown(0))
         {
-            Camera currentCamera = GameObject.FindObjectOfType<CameraController>().GetCamera();
+            Camera currentCamera = _cameraController.GetCamera();
             if(currentCamera != null)
             {
                 _ray = currentCamera.ScreenPointToRay(Input.mousePosition);

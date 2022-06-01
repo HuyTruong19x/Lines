@@ -33,7 +33,7 @@ public class CameraController : MonoBehaviour
 
     public Camera GetCamera()
     {
-        if (_arCamera.activeSelf)
+        if (_arCamera != null && _arCamera.activeSelf)
             return _arCamera.GetComponent<Camera>();
         return _camera.GetComponent<Camera>();
     }    

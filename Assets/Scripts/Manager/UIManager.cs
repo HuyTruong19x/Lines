@@ -4,6 +4,7 @@ using UnityEngine;
 using TMPro;
 using System;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class UIManager : Singleton<UIManager>
 {
@@ -92,5 +93,20 @@ public class UIManager : Singleton<UIManager>
         {
             _balls[i].color = new Color(i_colors[i].r, i_colors[i].g, i_colors[i].b, 1);
         }    
+    }    
+
+    public void OnGoToARSceneClick()
+    {
+        GameObject.FindObjectOfType<GamePermission>().RequestCameraPermission((hasPermission)=>
+        {
+            if(hasPermission)
+            {
+                SceneManager.LoadScene(1);
+            }    
+            else
+            {
+                Debug.Log("Camera permision denied");
+            }    
+        });
     }    
 }
