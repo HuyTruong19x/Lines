@@ -10,6 +10,7 @@ public class BallManager : MonoBehaviour
     private GridManager _gridManager;
     private UIManager _uiManager;
     private bool _isInitialized = false;
+    private bool _isSkipRound = false;
     private Queue<Ball> _waitingBall = new Queue<Ball>();
     private Queue<Color> _waitingColor = new Queue<Color>();
 
@@ -77,6 +78,12 @@ public class BallManager : MonoBehaviour
     }    
     private void DequeueBall()
     {
+        if(_isSkipRound)
+        {
+            _isSkipRound = false;
+            GameManager.Instance.ChangeGameState(GAMESTATE.PLAYING);
+            return;
+        }
         SpawnBall(false);
     }
     public void SpawnBall(bool i_isShowed)
@@ -145,6 +152,11 @@ public class BallManager : MonoBehaviour
 
     private void GrowUpBall()
     {
+        if(_isSkipRound)
+        {
+            GameManager.Instance.ChangeGameState(GAMESTATE.WAITING);
+            return;
+        }
         while (_waitingBall.Count > 0)
         {
             Ball ball = _waitingBall.Dequeue();
@@ -243,6 +255,7 @@ public class BallManager : MonoBehaviour
 
     public void DestroyBall(List<Tile> i_tiles)
     {
+        _isSkipRound = true;
         SoundManager.Instance.PlaySFX(SFX.CONFETTI);
         foreach (Tile tile in i_tiles)
         {
@@ -251,7 +264,6 @@ public class BallManager : MonoBehaviour
             tile.SetBall(null);
             VFXManager.Instance.TriggerVFX(VFXMode.CONFETTI, tile.gameObject.transform.position);
         }
-        GameManager.Instance.IncreaseScore();
-        //Todo spawn VFX
+        GameManager.Instance.IncreaseScore(i_tiles.Count);
     }      
 }

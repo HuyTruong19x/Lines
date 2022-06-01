@@ -55,15 +55,12 @@ public class GridManager : MonoBehaviour
                 Touch touch = Input.GetTouch(0);
                 if(_arRaycastManager.Raycast(touch.position, _hits, UnityEngine.XR.ARSubsystems.TrackableType.Planes))
                 {
-                    if(touch.phase == TouchPhase.Ended)
-                    {
-                        _firstTileLocation = new Vector2Int((int)_hits[0].pose.position.x, (int)_hits[0].pose.position.y);
-                        _isDetecting = false;
-                        GenerateTiles(_firstTileLocation.x, _firstTileLocation.y, Vector3.one * _minTileSize);
-                        _tiles[new Vector2Int(0,0)].transform.parent.rotation = _hits[0].pose.rotation;
-                        GameManager.Instance.ChangeGameState(GAMESTATE.STARTING);
-                        Debug.Log("Finish detect plane");
-                    }    
+                    _firstTileLocation = new Vector2Int((int)_hits[0].pose.position.x, (int)_hits[0].pose.position.y);
+                    _isDetecting = false;
+                    GenerateTiles(_firstTileLocation.x, _firstTileLocation.y, Vector3.one * _minTileSize);
+                    _tiles[new Vector2Int(0,0)].transform.parent.rotation = _hits[0].pose.rotation;
+                    GameManager.Instance.ChangeGameState(GAMESTATE.STARTING);
+                    Debug.Log("Finish detect plane");  
                 }
             }    
         }

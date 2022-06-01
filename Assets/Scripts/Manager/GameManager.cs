@@ -59,9 +59,9 @@ public class GameManager : Singleton<GameManager>
         }    
     }
 
-    public void IncreaseScore()
+    public void IncreaseScore(int i_numBall)
     {
-        _score += INSCREASESCORE;
+        _score += INSCREASESCORE * i_numBall;
         if(_uiManager == null)
         {
             _uiManager = GameObject.FindObjectOfType<UIManager>();
