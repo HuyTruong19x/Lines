@@ -37,13 +37,6 @@ public class BallManager : MonoBehaviour
         _pathFinding = new PathFinding();
         _gridManager = GameObject.FindObjectOfType<GridManager>();
         _uiManager = GameObject.FindObjectOfType<UIManager>();
-    }
-    private void ChangedGameMode()
-    {
-        if(!_isInitialized)
-        {
-            GameManager.Instance.ChangeGameState(GAMESTATE.STARTING);
-        }    
     }    
 
     private BALLTYPE GetBallType()
@@ -72,6 +65,7 @@ public class BallManager : MonoBehaviour
     {
         if(_isInitialized)
         {
+            GameManager.Instance.ChangeGameState(GAMESTATE.PLAYING);
             return;
         }    
         SpawnBall(true);

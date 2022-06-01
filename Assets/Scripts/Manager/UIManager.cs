@@ -29,17 +29,22 @@ public class UIManager : MonoBehaviour
     GameData _gameData;
     private void OnEnable()
     {
+        EventManager.Instance.RegisterEvent(GAMEEVENT.SETUP, Initialize);
         EventManager.Instance.RegisterEvent(GAMEEVENT.STARTING, OnStart);
         EventManager.Instance.RegisterEvent(GAMEEVENT.GAMEOVER, ShowGameOver);
     }
     private void OnDisable()
     {
+        EventManager.Instance.RemoveEvent(GAMEEVENT.SETUP, Initialize);
         EventManager.Instance.RemoveEvent(GAMEEVENT.STARTING, OnStart);
         EventManager.Instance.RemoveEvent(GAMEEVENT.GAMEOVER, ShowGameOver);
     }
-    private void OnStart()
+    private void Initialize()
     {
         _currentTime = 0;
+    }    
+    private void OnStart()
+    {
         _isPlaying = true;
         ShowScore(0);
 
