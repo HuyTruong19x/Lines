@@ -40,6 +40,7 @@ public class Ball : MonoBehaviour
         }
         else
         {
+            transform.DOScale(Vector3.one * BallManager.MAXIMUM, 0.2f);
             _ballTween?.SetLoops(0);
             _ballTween?.Complete();
             _ballTween.Kill();
