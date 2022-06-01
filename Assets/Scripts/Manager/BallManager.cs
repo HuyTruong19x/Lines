@@ -8,6 +8,7 @@ public class BallManager : MonoBehaviour
     public const float MAXIMUM = 0.8f;
     public const float MINIMUM = 0.2f;
     private GridManager _gridManager;
+    private bool _isInitialized = false;
     private Queue<Ball> _waitingBall = new Queue<Ball>();
     private Queue<Color> _waitingColor = new Queue<Color>();
 
@@ -69,8 +70,19 @@ public class BallManager : MonoBehaviour
         }    
     }
 
+    private void ChangedGameMode()
+    {
+        if(!_isInitialized)
+        {
+            GameManager.Instance.ChangeGameState(GAMESTATE.STARTING);
+        }    
+    }    
     private void SetupBall()
     {
+        if(_isInitialized)
+        {
+            return;
+        }    
         //Random first queue
         List<Color> colors = new List<Color>();
         for (int i = 0; i < 3; i++)
@@ -82,6 +94,7 @@ public class BallManager : MonoBehaviour
 
         SpawnBall(true);
         DequeueBall();
+        _isInitialized = true;
     }    
     private void DequeueBall()
     {
@@ -173,6 +186,10 @@ public class BallManager : MonoBehaviour
     public void HandleBallMoveMent(RaycastHit i_hitInfo)
     {
         Tile currentTile = i_hitInfo.collider.GetComponent<Tile>();
+        if(currentTile == null)
+        {
+            return;
+        }    
         if (_selectedTileWithBall == null)
         {
             if (currentTile.isBlocked)

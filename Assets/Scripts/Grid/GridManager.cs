@@ -12,86 +12,90 @@ public class GridManager : MonoBehaviour
 
     private BallManager _ballManager;
     private Dictionary<Vector2Int, Tile> _tiles = new Dictionary<Vector2Int, Tile>();
+
+    //AR mode
     private ARRaycastManager _arRaycastManager;
-    private Camera _arCamera;
-    List<ARRaycastHit> _hits = new List<ARRaycastHit>();
+    private List<ARRaycastHit> _hits = new List<ARRaycastHit>();
+    private RaycastHit _hitInfo;
+    private bool _isDetecting = false;
+    private Vector2Int _firstTileLocation = Vector2Int.zero;
     private void Start()
     {
         _ballManager = GameObject.FindObjectOfType<BallManager>();
         if (GameManager.Instance.GameMode == GAMEMODE.ARMODE)
         {
             _arRaycastManager = GameObject.FindObjectOfType<ARRaycastManager>();
-            _arCamera = GameObject.FindGameObjectWithTag("Main Camera").GetComponent<Camera>();
         }
     }
 
     private void OnEnable()
     {
         EventManager.Instance.RegisterEvent(GAMEEVENT.SETUP, GenerateTiles);
-        EventManager.Instance.RegisterEvent(GAMEEVENT.TURNONARMODE, GenerateTileInARMode);
-        EventManager.Instance.RegisterEvent(GAMEEVENT.TURNOFFARMODE, GenerateTileWithoutARMode);
+        EventManager.Instance.RegisterEvent(GAMEEVENT.CHANGEDGAMEMODE, UpdateGameMode);
     }
 
     private void OnDisable()
     {
         EventManager.Instance.RemoveEvent(GAMEEVENT.SETUP, GenerateTiles);
-        EventManager.Instance.RemoveEvent(GAMEEVENT.TURNONARMODE, GenerateTileInARMode);
-        EventManager.Instance.RemoveEvent(GAMEEVENT.TURNOFFARMODE, GenerateTileWithoutARMode);
+        EventManager.Instance.RemoveEvent(GAMEEVENT.CHANGEDGAMEMODE, UpdateGameMode);
     }
 
+    private void Update()
+    {
+        if (GameManager.Instance.GameMode == GAMEMODE.ARMODE)
+        {
+            if(_isDetecting)
+            {
+                if (Input.touchCount == 0)
+                {
+                    return;
+                }    
+                Touch touch = Input.GetTouch(0);
+                if(_arRaycastManager.Raycast(touch.position, _hits))
+                {
+                    if(touch.phase == TouchPhase.Ended)
+                    {
+                        Ray ray = Camera.main.ScreenPointToRay(touch.position);
+                        if (Physics.Raycast(ray, out _hitInfo))
+                        {
+                            _firstTileLocation = new Vector2Int((int)_hitInfo.collider.transform.position.x, (int)_hitInfo.collider.transform.position.y);
+                            _isDetecting = false;
+                            GenerateTiles(_firstTileLocation.x, _firstTileLocation.y);
+                            GameManager.Instance.ChangeGameState(GAMESTATE.STARTING);
+                            Debug.Log("Finish detect plane");
+                        }    
+                    }    
+                }
+            }    
+        }
+    }
+
+    private void UpdateGameMode()
+    {
+        if(GameManager.Instance.GameMode == GAMEMODE.ARMODE)
+        {
+            if (_firstTileLocation != Vector2Int.zero)
+            {
+                GenerateTiles(_firstTileLocation.x, _firstTileLocation.y);
+            }
+            else
+            {
+                _isDetecting = true;
+            }
+        }    
+        else
+        {
+            GenerateTiles(0, 0);
+        }    
+    }    
     private void GenerateTiles()
     {
-        if(GameManager.Instance.GameMode == GAMEMODE.NONE)
-        {
-            GenerateTileWithoutARMode();
-        }
-        else if(GameManager.Instance.GameMode == GAMEMODE.ARMODE)
-        {
-            GenerateTileInARMode();
-        }
+
+        ResetTiles();
+        UpdateGameMode();  
     }
-    private void GenerateTileInARMode()
-    {
-        Vector2Int firstTileLocation = Vector2Int.zero;
 
-        Ray ray = _arCamera.ScreenPointToRay(new Vector3(_arCamera.scaledPixelHeight/2, _arCamera.scaledPixelHeight/2));
-
-        if(_arRaycastManager.Raycast(ray, _hits))
-        {
-            firstTileLocation = new Vector2Int((int)_hits[0].pose.position.x, (int)_hits[0].pose.position.y);
-        }
-
-
-        if (_tiles.Count < 1)
-        {
-            for (int i = 0; i < WIDTH; i++)
-            {
-                for (int y = 0; y < HEIGHT; y++)
-                {
-                    Tile tile = ObjectPool.Instance.TakeObject("tile").GetComponent<Tile>();
-                    tile.SetLocation(i, y);
-                    tile.gameObject.name = $"tile {i} - {y}";
-                    tile.gameObject.transform.position = new Vector3(firstTileLocation.x + i, firstTileLocation.y + y, -0.1f);
-                    _tiles.Add(new Vector2Int(i, y), tile);
-                }
-            }
-        }
-        else
-        {
-            //Reset tile
-            for (int i = 0; i < WIDTH; i++)
-            {
-                for (int y = 0; y < HEIGHT; y++)
-                {
-                    Vector2Int location = new Vector2Int(i, y);
-                    _tiles[location].gameObject.transform.position = new Vector3(firstTileLocation.x + i, firstTileLocation.y + y, -0.1f);
-                    _tiles[location].ResetTile();
-                }
-            }
-        }
-        GameManager.Instance.ChangeGameState(GAMESTATE.STARTING);
-    }
-    private void GenerateTileWithoutARMode()
+    private void GenerateTiles(int i_StartX, int i_StartY)
     {
         if (_tiles.Count < 1)
         {
@@ -102,25 +106,39 @@ public class GridManager : MonoBehaviour
                     Tile tile = ObjectPool.Instance.TakeObject("tile").GetComponent<Tile>();
                     tile.SetLocation(i, y);
                     tile.gameObject.name = $"tile {i} - {y}";
-                    tile.gameObject.transform.position = new Vector3(i, y, -0.1f);
+                    tile.gameObject.transform.position = new Vector3(i_StartX + i, i_StartY + y, -0.1f);
                     _tiles.Add(new Vector2Int(i, y), tile);
                 }
             }
         }
         else
         {
-            //Reset tile
+            //Reset position if already available
             for (int i = 0; i < WIDTH; i++)
             {
                 for (int y = 0; y < HEIGHT; y++)
                 {
                     Vector2Int location = new Vector2Int(i, y);
-                    _tiles[location].gameObject.transform.position = new Vector3(i, y, -0.1f);
-                    _tiles[location].ResetTile();
+                    _tiles[location].gameObject.transform.position = new Vector3(i_StartX + i, i_StartY + y, -0.1f);
+                    _tiles[location].UpdateBallPosition();
                 }
             }
         }
         GameManager.Instance.ChangeGameState(GAMESTATE.STARTING);
+    }
+
+    private void ResetTiles()
+    {
+        if (_tiles.Count < 1)
+            return;
+        for (int i = 0; i < WIDTH; i++)
+        {
+            for (int y = 0; y < HEIGHT; y++)
+            {
+                Vector2Int location = new Vector2Int(i, y);
+                _tiles[location].ResetTile();
+            }
+        }
     }
 
     public Tile GetTile(Vector2Int i_location)

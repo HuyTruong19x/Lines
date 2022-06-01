@@ -49,6 +49,14 @@ public class Tile : MonoBehaviour
         return _previousTile;
     }
 
+    public void UpdateBallPosition()
+    {
+        if(_ball != null)
+        {
+            _ball.gameObject.transform.position = new Vector3(transform.position.x, transform.position.y, 0);
+        }
+    }
+
     public void ResetTile()
     {
         _ball?.gameObject.SetActive(false);

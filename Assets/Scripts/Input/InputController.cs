@@ -27,10 +27,14 @@ public class InputController : MonoBehaviour
     {
         if(Input.GetMouseButtonDown(0))
         {
-            _ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if(Physics.Raycast(_ray, out _hitInfo))
+            Camera currentCamera = GameObject.FindObjectOfType<CameraController>().GetCamera();
+            if(currentCamera != null)
             {
-                HandleRaycastHit(_hitInfo);   
+                _ray = currentCamera.ScreenPointToRay(Input.mousePosition);
+                if (Physics.Raycast(_ray, out _hitInfo))
+                {
+                    HandleRaycastHit(_hitInfo);
+                }
             }    
         }    
     }
