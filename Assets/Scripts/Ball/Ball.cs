@@ -15,12 +15,48 @@ public class Ball : MonoBehaviour
     private GridManager _gridManager;
     [SerializeField]
     private GameObject _ghostObject;
+    private BALLTYPE _ballType;
 
-    public bool isGhost = false;
+    //Move ball
+    private float _smoothMove = 0.1f;
+    private List<Tile> _paths;
+    private bool _isDoMove = false;
+    private Vector3Int _targetMove;
+
+    public bool IsGhost { get { return _ballType == BALLTYPE.GHOST; } }
     public Color Color { get{ return _color; } }
     private void Awake()
     {
         _mesh = GetComponent<MeshRenderer>();
+        _paths = new List<Tile>();
+    }
+
+    private void FixedUpdate()
+    {
+        if (_isDoMove)
+        {
+            transform.position = Vector3.MoveTowards(transform.position, _targetMove, _smoothMove);
+            if (Vector3.Distance(transform.position, _targetMove) < 0.1f)
+            {
+                if (_paths.Count < 1)
+                {
+                    _isDoMove = false;
+                    transform.position = _targetMove;
+                    transform.DOScale(Vector3.one * BallManager.MAXIMUM, 0.3f).OnComplete(() =>
+                    {
+                        _gridManager.CheckScore(_gridManager.GetTile(new Vector2Int(_targetMove.x, _targetMove.y)));
+                        GameManager.Instance.EndTurn();
+                    }).Play();
+
+                }
+                if (_paths.Count > 0)
+                {
+                    _targetMove = new Vector3Int().CreateFromVector2Int(_paths[0].GetLocation());
+                    _paths.RemoveAt(0);
+                }
+            }
+
+        }
     }
     public void FinishBall()
     {
@@ -46,14 +82,24 @@ public class Ball : MonoBehaviour
             _ballTween.Kill();
         }
     }
-    public void Setup(GridManager i_grid, Vector2Int i_location, Color i_color, bool i_isGhost)
+    public void MoveTo(List<Tile> i_paths)
+    {
+        _paths = i_paths;
+        transform.DOScale(Vector3.one * BallManager.MINIMUM * 1.5f, 0.2f).OnComplete(() =>
+        {
+            _targetMove = new Vector3Int().CreateFromVector2Int(_paths[0].GetLocation());
+            _paths.RemoveAt(0);
+            _isDoMove = true;
+        }).Play();
+    }    
+    public void Setup(GridManager i_grid, Vector2Int i_location, Color i_color, BALLTYPE i_ballType)
     {
         _gridManager = i_grid;
         _location = i_location;
         _color = i_color;
         _mesh.material.color = i_color;
-        _ghostObject?.SetActive(i_isGhost);
-        isGhost = i_isGhost;
+        _ghostObject?.SetActive(i_ballType == BALLTYPE.GHOST);
+        _ballType = i_ballType;
     }
     public void SetColor(Color i_color)
     {
@@ -68,13 +114,20 @@ public class Ball : MonoBehaviour
     {
         _location = i_location;
     }  
-    public void SetGhostMode(bool i_isGhost)
+    public void SetBallMode(BALLTYPE i_ballType)
     {
-        _ghostObject?.SetActive(i_isGhost);
-        isGhost = i_isGhost;
+        _ghostObject?.SetActive(i_ballType == BALLTYPE.GHOST);
+        _ballType = i_ballType;
     }
     public Vector2Int GetLocation()
     {
         return _location;
     }    
+}
+
+
+public enum BALLTYPE
+{
+    NONE,
+    GHOST
 }

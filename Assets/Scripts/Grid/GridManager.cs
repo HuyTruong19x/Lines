@@ -90,7 +90,6 @@ public class GridManager : MonoBehaviour
     }    
     private void GenerateTiles()
     {
-
         ResetTiles();
         UpdateGameMode();  
     }

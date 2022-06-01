@@ -13,15 +13,12 @@ public class BallManager : MonoBehaviour
     private Queue<Color> _waitingColor = new Queue<Color>();
 
     [SerializeField]
-    private float _smoothMove = 0.1f;
     private PathFinding _pathFinding;
-    private List<Tile> _paths;
     private Tile _selectedTileWithBall;
-    private bool _isDoMove = false;
-    private Vector3Int _targetMove;
 
     private void OnEnable()
     {
+        EventManager.Instance.RegisterEvent(GAMEEVENT.SETUP, Initialize);
         EventManager.Instance.RegisterEvent(GAMEEVENT.STARTING, SetupBall);
         EventManager.Instance.RegisterEvent(GAMEEVENT.WAITING, DequeueBall);
         EventManager.Instance.RegisterEvent(GAMEEVENT.ENDTURN, GrowUpBall);
@@ -29,6 +26,7 @@ public class BallManager : MonoBehaviour
 
     private void OnDisable()
     {
+        EventManager.Instance.RemoveEvent(GAMEEVENT.SETUP, Initialize);
         EventManager.Instance.RemoveEvent(GAMEEVENT.STARTING, SetupBall);
         EventManager.Instance.RemoveEvent(GAMEEVENT.WAITING, DequeueBall);
         EventManager.Instance.RemoveEvent(GAMEEVENT.ENDTURN, GrowUpBall);
@@ -36,40 +34,8 @@ public class BallManager : MonoBehaviour
     private void Awake()
     {
         _pathFinding = new PathFinding();
-        _paths = new List<Tile>();
         _gridManager = GameObject.FindObjectOfType<GridManager>();
     }
-    private void FixedUpdate()
-    {
-        if(_isDoMove)
-        {
-            _selectedTileWithBall.GetBall().transform.position = Vector3.MoveTowards(_selectedTileWithBall.GetBall().transform.position, _targetMove, _smoothMove);
-            if (Vector3.Distance(_selectedTileWithBall.GetBall().transform.position, _targetMove) < 0.1f)
-            {
-                if (_paths.Count < 1)
-                {
-                    _isDoMove = false;
-                    _selectedTileWithBall.GetBall().transform.position = _targetMove;
-                    _selectedTileWithBall.GetBall().transform.DOScale(Vector3.one * MAXIMUM, 0.3f).OnComplete(() =>
-                    {
-                        _selectedTileWithBall.SetBall(null);
-                        _selectedTileWithBall.SetShowed(false);
-                        _selectedTileWithBall = null;
-                        _gridManager.CheckScore(_gridManager.GetTile(new Vector2Int(_targetMove.x, _targetMove.y)));
-                        GameManager.Instance.EndTurn();
-                    }).Play();
-                    
-                }
-                if(_paths.Count > 0)
-                {
-                    _targetMove = new Vector3Int().CreateFromVector2Int(_paths[0].GetLocation());
-                    _paths.RemoveAt(0);
-                }    
-            }
-            
-        }    
-    }
-
     private void ChangedGameMode()
     {
         if(!_isInitialized)
@@ -77,13 +43,21 @@ public class BallManager : MonoBehaviour
             GameManager.Instance.ChangeGameState(GAMESTATE.STARTING);
         }    
     }    
-    private void SetupBall()
+
+    private BALLTYPE GetBallType()
     {
-        if(_isInitialized)
+        int rand = UnityEngine.Random.Range(0, 100);
+        if(rand <= GameManager.Instance.GetRateSpawnGhostBall())
         {
-            return;
-        }    
+            return BALLTYPE.GHOST;
+        }
+        return BALLTYPE.NONE;
+    }    
+    private void Initialize()
+    {
+        _isInitialized = false;
         //Random first queue
+        _waitingBall.Clear();
         List<Color> colors = new List<Color>();
         for (int i = 0; i < 3; i++)
         {
@@ -91,7 +65,13 @@ public class BallManager : MonoBehaviour
             _waitingColor.Enqueue(col);
             colors.Add(col);
         }
-
+    }    
+    private void SetupBall()
+    {
+        if(_isInitialized)
+        {
+            return;
+        }    
         SpawnBall(true);
         DequeueBall();
         _isInitialized = true;
@@ -113,14 +93,14 @@ public class BallManager : MonoBehaviour
         int numSpawn = GameManager.Instance.NumSpawn > availableLocation.Count ? availableLocation.Count : GameManager.Instance.NumSpawn;
         if(numSpawn <= 1)
         {
-            GenerateBall(tiles, availableLocation, true, false, _waitingColor.Count > 0 ? _waitingColor.Dequeue() : GameManager.Instance.GetRandomColor());
+            GenerateBall(tiles, availableLocation, true, BALLTYPE.NONE, _waitingColor.Count > 0 ? _waitingColor.Dequeue() : GameManager.Instance.GetRandomColor());
             GameManager.Instance.ChangeGameState(GAMESTATE.GAMEOVER);
             return;
         }
         for (int i = 0; i < numSpawn; i++)
         {
-            int rand = UnityEngine.Random.Range(0, 100);
-            GenerateBall(tiles, availableLocation, i_isShowed, rand <= GameManager.Instance.GetRateSpawnGhostBall(), _waitingColor.Count > 0 ? _waitingColor.Dequeue() : GameManager.Instance.GetRandomColor());
+            
+            GenerateBall(tiles, availableLocation, i_isShowed, GetBallType(), _waitingColor.Count > 0 ? _waitingColor.Dequeue() : GameManager.Instance.GetRandomColor());
         }
 
         List<Color> colors = new List<Color>();
@@ -134,7 +114,7 @@ public class BallManager : MonoBehaviour
         GameManager.Instance.ChangeGameState(GAMESTATE.PLAYING);
     }
 
-    private void GenerateBall(Dictionary<Vector2Int, Tile> i_tiles, List<Vector2Int> i_availableLocation, bool i_isShowed, bool i_isGhost, Color i_color)
+    private void GenerateBall(Dictionary<Vector2Int, Tile> i_tiles, List<Vector2Int> i_availableLocation,bool i_isShowed, BALLTYPE i_ballType, Color i_color)
     {
         //Recheck available Location
         i_availableLocation = i_tiles.Keys.Where(x => !i_tiles[x].hasBall).ToList();
@@ -143,7 +123,7 @@ public class BallManager : MonoBehaviour
         Vector2Int location = i_availableLocation[rand];
         Ball ballSpawned = ObjectPool.Instance.TakeObject("ball").GetComponent<Ball>();
         ballSpawned.gameObject.transform.position = new Vector3(i_tiles[location].transform.position.x, i_tiles[location].transform.position.y, 0);
-        ballSpawned.Setup(_gridManager, location, i_color, i_isGhost);
+        ballSpawned.Setup(_gridManager, location, i_color, i_ballType);
         //ballSpawned.SetColor(i_color);
         //ballSpawned.SetLocation(location);
         //ballSpawned.SetGhostMode(i_isGhost);
@@ -201,8 +181,8 @@ public class BallManager : MonoBehaviour
         }
         else if (!currentTile.isBlocked)
         {
-            _paths = _pathFinding.FindPath(_gridManager.GetTiles(), _selectedTileWithBall, currentTile);
-            if (_paths.Count < 1)
+            List<Tile> paths = _pathFinding.FindPath(_gridManager.GetTiles(), _selectedTileWithBall, currentTile);
+            if (paths.Count < 1)
             {
                 Debug.Log("can;t move, zero path");
                 SoundManager.Instance.PlaySFX(SFX.CANNOTMOVE);
@@ -234,16 +214,11 @@ public class BallManager : MonoBehaviour
                 currentTile.SetShowed(true);
 
                 SoundManager.Instance.PlaySFX(SFX.MOVE);
-
                 _selectedTileWithBall.GetBall().Selected(false);
-                _selectedTileWithBall.GetBall().transform.DOScale(Vector3.one * MINIMUM * 1.5f, 0.2f).OnComplete(() =>
-                {
-                    _targetMove = new Vector3Int().CreateFromVector2Int(_paths[0].GetLocation());
-                    _paths.RemoveAt(0);
-                    _isDoMove = true;
-                }).Play();
-                
-
+                _selectedTileWithBall.GetBall().MoveTo(paths);
+                _selectedTileWithBall.SetBall(null);
+                _selectedTileWithBall.SetShowed(false);
+                _selectedTileWithBall = null;
             }
         }
         else

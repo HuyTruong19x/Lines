@@ -18,12 +18,6 @@ public class GameManager : Singleton<GameManager>
     public bool CanPlay { get { return !_isGameOver && _gameState == GAMESTATE.PLAYING; } }
     public GAMEMODE GameMode { get { return _gameMode; } }
 
-    private void Start()
-    {
-        EventManager.Instance.InvokeEvent(GAMEEVENT.SETUP);
-    }
-
-
     public Color GetRandomColor()
     {
         if (_gameSetting == null)
@@ -49,6 +43,10 @@ public class GameManager : Singleton<GameManager>
             _isGameOver = true;
             GameObject.FindObjectOfType<GameData>()?.UpdateHightScore(_score);
         }
+        else if(i_gameState == GAMESTATE.SETUP)
+        {
+            _isGameOver = false;
+        }    
         EventManager.Instance.InvokeEvent((GAMEEVENT)i_gameState);
     }    
     public void ChangeGameMode(GAMEMODE i_gameMode)

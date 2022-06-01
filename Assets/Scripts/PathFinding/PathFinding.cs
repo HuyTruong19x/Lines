@@ -29,7 +29,7 @@ public class PathFinding
                 return GetFinishedList(start, end);
             }
 
-            if (!start.GetBall().isGhost)
+            if (!start.GetBall().IsGhost)
             {
                 foreach (var tile in GetNeighbourTile(i_tiles, currentTile))
                 {
