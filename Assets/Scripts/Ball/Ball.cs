@@ -59,6 +59,7 @@ public class Ball : MonoBehaviour
                     {
                         _renderer.material = _defaultMaterial;
                         _renderer.material.color = GameManager.Instance.GetRandomColor();
+						_ballType = BALLTYPE.NONE;
                     }    
 
                     GameManager.Instance.ChangeGameState(GAMESTATE.ENDTURN);
