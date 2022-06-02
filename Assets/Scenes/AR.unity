@@ -3803,8 +3803,53 @@ PrefabInstance:
       propertyPath: m_Name
       value: Common
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 799899441, guid: 8e2a3fa4a8f3d7448926936ea5732450, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 8e2a3fa4a8f3d7448926936ea5732450, type: 3}
+--- !u!1 &1335180367 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 799899439, guid: 8e2a3fa4a8f3d7448926936ea5732450,
+    type: 3}
+  m_PrefabInstance: {fileID: 1335180366}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1335180368 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6588314428484086030, guid: 8e2a3fa4a8f3d7448926936ea5732450,
+    type: 3}
+  m_PrefabInstance: {fileID: 1335180366}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43510205020b5354680d69136363b5f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1335180369 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6588314427692530182, guid: 8e2a3fa4a8f3d7448926936ea5732450,
+    type: 3}
+  m_PrefabInstance: {fileID: 1335180366}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b56826ccd5aff94ea1996e3a4f1a105, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1335180370
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1335180367}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d24effe52dfbe2f4fb28059aacdf7230, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _ballManager: {fileID: 1335180369}
+  _gridManager: {fileID: 1335180368}
 --- !u!1 &1433585018
 GameObject:
   m_ObjectHideFlags: 0
@@ -5863,7 +5908,6 @@ MonoBehaviour:
   - {fileID: 2372159212671760767, guid: 8c54f561be3cc364194586a9041fc4d0, type: 3}
   - {fileID: 2043736433903077951, guid: 58c2773e36b966940b4fe0ac755b4d25, type: 3}
   - {fileID: 129898, guid: 36bdc02b23d9ca94d93bd715c0cca5c0, type: 3}
-  _objects: []
 --- !u!1 &3360935979013785562
 GameObject:
   m_ObjectHideFlags: 0

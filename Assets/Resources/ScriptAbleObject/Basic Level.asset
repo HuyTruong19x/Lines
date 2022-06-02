@@ -20,15 +20,15 @@ MonoBehaviour:
   - {r: 0, g: 0.04815674, b: 1, a: 1}
   - {r: 0, g: 1, b: 0.9687028, a: 1}
   Rates:
+  - Type: 2
+    Rate: 5
+    Material: {fileID: 2100000, guid: 79866f5773e981e43ad4ff2cc840f3f4, type: 2}
   - Type: 1
     Rate: 10
-    Material: {fileID: 2100000, guid: ba8c7dbaf9a062b4091dac819efe7538, type: 2}
-  - Type: 2
-    Rate: 20
-    Material: {fileID: 2100000, guid: 79866f5773e981e43ad4ff2cc840f3f4, type: 2}
+    Material: {fileID: 2100000, guid: 932230b0ea168be4e96945292a8592fc, type: 2}
   - Type: 3
-    Rate: 30
+    Rate: 20
     Material: {fileID: 2100000, guid: bba292f19e5afcf4da36d67d5b99ccf7, type: 2}
   - Type: 0
     Rate: 100
-    Material: {fileID: 2100000, guid: 932230b0ea168be4e96945292a8592fc, type: 2}
+    Material: {fileID: 2100000, guid: ba8c7dbaf9a062b4091dac819efe7538, type: 2}

@@ -32,11 +32,7 @@ public class GameManager : Singleton<GameManager>
     public List<BallData> GetBallData()
     {
         return _gameSetting.Rates;
-    }
-    public void EndTurn()
-    {
-        ChangeGameState(GAMESTATE.ENDTURN);
-    }    
+    }   
     public void ChangeGameState(GAMESTATE i_gameState)
     {
         _gameState = i_gameState;

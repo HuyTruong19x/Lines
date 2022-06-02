@@ -6,7 +6,7 @@
 ***Các loại bóng*** :
 - Bóng bình thường : chỉ chứa màu sắc
 - Bóng ma : có thể di chuyển khắp nơi mà không bị chặn lại bởi quả bóng khác
-- Bóng cầu vồng : Có giá trị màu sắc như tất cả các màu còn lại
+- Bóng cầu vồng : Sau khi di chuyển, biến đổi ngẫu nhiên thành 1 màu bất kì, hãy cực kì cận thận với nó. Đôi khi nó mang lại lợi ích cho bạn hoặc không
 - Bóng sọc ngang : Sau khi di chuyển, biến đổi 2 quả bóng bên cạnh theo chiều ngang thành cùng màu với chính nó
 
 ***Chế độ AR (AR scene)*** :

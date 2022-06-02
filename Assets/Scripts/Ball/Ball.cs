@@ -55,8 +55,13 @@ public class Ball : MonoBehaviour
                     {
                         PainOtherBall();
                     }    
+                    else if(_ballType == BALLTYPE.RAINBOW)
+                    {
+                        _renderer.material = _defaultMaterial;
+                        _renderer.material.color = GameManager.Instance.GetRandomColor();
+                    }    
 
-                    GameManager.Instance.EndTurn();
+                    GameManager.Instance.ChangeGameState(GAMESTATE.ENDTURN);
                 }
                 if (_paths.Count > 0)
                 {
@@ -184,6 +189,10 @@ public class Ball : MonoBehaviour
     public Vector2Int GetLocation()
     {
         return _location;
+    }    
+    public Color GetColor()
+    {
+        return _color;
     }    
 }
 [System.Serializable]

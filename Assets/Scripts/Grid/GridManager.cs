@@ -23,7 +23,7 @@ public class GridManager : MonoBehaviour
     private bool _isDetecting = false;
     private Vector3 _lastDetectedPosition = Vector3.zero;
     private Quaternion _lastDetectedRotation = Quaternion.identity;
-    private float _scaleObjectARMode = 0.02f;
+    private float _scaleObjectARMode = 0.15f;
     private void Start()
     {
         _parentGrid.Reset();
@@ -342,6 +342,7 @@ public class GridManager : MonoBehaviour
             Vector2Int yangNumber = new Vector2Int(x + i, y + i);
             Vector2Int yinNumber = new Vector2Int(x - i, y - i);
 
+
             if (_tiles.ContainsKey(yangNumber) && yang)
             {
                 if (_tiles[yangNumber].GetBall() != null && _tiles[yangNumber].GetBall().CompareColor(i_tile.GetBall()))
@@ -398,9 +399,19 @@ public class GridManager : MonoBehaviour
         {
             _ballManager.DestroyBall(finishList);
         }    
-    }
+    }  
     private bool CheckList(List<Tile> i_listCHeck)
     {
+        if(!i_listCHeck[0].GetBall().CompareColor(i_listCHeck[1].GetBall()))
+        {
+            i_listCHeck.RemoveAt(0);
+        }
+
+        if (!i_listCHeck[i_listCHeck.Count - 2].GetBall().CompareColor(i_listCHeck[i_listCHeck.Count - 1].GetBall()))
+        {
+            i_listCHeck.RemoveAt(i_listCHeck.Count - 1);
+        }
+
         for (int i = 0; i < i_listCHeck.Count - 1; i++)
         {
             for (int j = i + 1; j < i_listCHeck.Count; j++)
@@ -413,8 +424,11 @@ public class GridManager : MonoBehaviour
         }
         return true;
     }
-    private bool isInside(Vector2Int i_location)
+    public void RotateGameBoard(float i_angle)
     {
-        return (i_location.x >= 0 && i_location.x < WIDTH && i_location.y >= 0 && i_location.y < HEIGHT) ;
+        if(_parentGrid)
+        {
+            _parentGrid.transform.Rotate(0, 0, i_angle, Space.Self);
+        }    
     }    
 }

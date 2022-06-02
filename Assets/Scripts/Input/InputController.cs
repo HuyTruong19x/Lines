@@ -5,12 +5,11 @@ using UnityEngine;
 
 public class InputController : MonoBehaviour
 {
-    
-    private Ray _ray;
-    private RaycastHit _hitInfo;
+    protected Ray _ray;
+    protected RaycastHit _hitInfo;
     [SerializeField]
-    private BallManager _ballManager;
-    private CameraController _cameraController;
+    protected BallManager _ballManager;
+    protected CameraController _cameraController;
     private void Update()
     {
         if(GameManager.Instance.CanPlay)
@@ -19,7 +18,7 @@ public class InputController : MonoBehaviour
         }    
     }
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR
-    private void InputInteract()
+    public virtual void InputInteract()
     {
         if(Input.GetMouseButtonDown(0))
         {
@@ -39,7 +38,7 @@ public class InputController : MonoBehaviour
         }    
     }
 #else
-    private void InputInteract()
+    public virtual void InputInteract()
     {
         if(Input.touchCount > 0)
         {
@@ -63,7 +62,7 @@ public class InputController : MonoBehaviour
         }    
     }
 #endif
-    private void HandleRaycastHit(RaycastHit i_hitInfo)
+    protected void HandleRaycastHit(RaycastHit i_hitInfo)
     {
         _ballManager.HandleBallMoveMent(i_hitInfo);
     }    
