@@ -54,6 +54,7 @@ public class Tile : MonoBehaviour
         if(_ball != null)
         {
             _ball.gameObject.transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, 0);
+            _ball.gameObject.SetActive(gameObject.activeSelf);
         }
     }
 

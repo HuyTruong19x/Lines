@@ -106,7 +106,10 @@ public class UIManager : MonoBehaviour
 
     public void SetActiveNotification(bool i_isEnable)
     {
-        _notification?.SetActive(i_isEnable);
+        if(_notification != null)
+        {
+            _notification?.SetActive(i_isEnable);
+        }
     }    
 
     public void OnGoToARSceneClick()

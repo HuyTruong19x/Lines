@@ -12,6 +12,8 @@ public class GridManager : MonoBehaviour
 
     public Transform Grid { get { return _parentGrid; } set { _parentGrid = value; } }
     [SerializeField]
+    private UIManager _uiManager;
+    [SerializeField]
     private BallManager _ballManager;
     [SerializeField]
     private Transform _parentGrid;
@@ -67,8 +69,11 @@ public class GridManager : MonoBehaviour
                     _parentGrid.localRotation = _lastDetectedRotation;
                     _parentGrid.localScale = Vector3.one * _scaleObjectARMode;
 
-                    FindObjectOfType<UIManager>()?.SetActiveNotification(false);
-                    StartInitializeBall();
+                    _uiManager.SetActiveNotification(false);
+                    if(!_ballManager.IsInitialized)
+                    {
+                        StartInitializeBall();
+                    }    
                     Debug.Log("Finish detect plane");  
                 }
             }    
@@ -80,7 +85,7 @@ public class GridManager : MonoBehaviour
 #if !UNITY_EDITOR
         if(GameManager.Instance.GameMode == GAMEMODE.ARMODE)
         {
-            //Todo handle switch calse
+            //Todo handle switch case
             if (_lastDetectedPosition != Vector3.zero)
             {
                 GenerateTiles();
@@ -89,16 +94,25 @@ public class GridManager : MonoBehaviour
                 _parentGrid.localScale = Vector3.one * _scaleObjectARMode;
             }
             else
-            { 
-                FindObjectOfType<UIManager>()?.SetActiveNotification(true);
+            {
+                _uiManager.SetActiveNotification(true);
+                if(_ballManager.IsInitialized)
+                {
+                    HideTiles();
+                }    
                 _isDetecting = true;
             }
         }    
         else
 #endif
         {
+            _uiManager.SetActiveNotification(false);
             _parentGrid.Reset();
             GenerateTiles();
+            if (!_ballManager.IsInitialized)
+            {
+                StartInitializeBall();
+            }
         }    
     }   
     private void StartInitializeBall()
@@ -109,14 +123,30 @@ public class GridManager : MonoBehaviour
     {
         ResetTiles();
         UpdateGameMode();
-        if(GameManager.Instance.GameMode == GAMEMODE.NONE)
+        if(GameManager.Instance.GameMode == GAMEMODE.NONE && !_ballManager.IsInitialized)
         {
             StartInitializeBall();
         }    
     }
-
+    private void HideTiles()
+    {
+        for (int i = 0; i < WIDTH; i++)
+        {
+            for (int y = 0; y < HEIGHT; y++)
+            {
+                Vector2Int location = new Vector2Int(i, y);
+                if (_tiles[location].gameObject.activeSelf)
+                {
+                    _tiles[location].gameObject.SetActive(false);
+                }
+                _tiles[location].UpdateBall();
+            }
+        }
+    }    
     private void GenerateTiles()
     {
+        int startX = -(WIDTH / 2);
+        int startY = -(HEIGHT / 2);
         if (_tiles.Count < 1)
         {
             for (int i = 0; i < WIDTH; i++)
@@ -126,7 +156,7 @@ public class GridManager : MonoBehaviour
                     Tile tile = ObjectPool.Instance.TakeObject("tile").GetComponent<Tile>();
                     tile.SetLocation(i, y);
                     tile.gameObject.name = $"tile {i} - {y}";
-                    tile.gameObject.transform.localPosition = new Vector3(i, y, -0.1f);
+                    tile.gameObject.transform.localPosition = new Vector3(startX + i, startY +y, -0.1f);
                     tile.transform.parent = _parentGrid;
                     _tiles.Add(new Vector2Int(i, y), tile);
                 }
@@ -144,7 +174,7 @@ public class GridManager : MonoBehaviour
                     {
                         _tiles[location].gameObject.SetActive(true);
                     }
-                    _tiles[location].gameObject.transform.localPosition = new Vector3(i, y , -0.1f);
+                    _tiles[location].gameObject.transform.localPosition = new Vector3(startX + i, startX + y, -0.1f);
                     _tiles[location].UpdateBall();
                 }
             }
@@ -402,16 +432,6 @@ public class GridManager : MonoBehaviour
     }  
     private bool CheckList(List<Tile> i_listCHeck)
     {
-        if(!i_listCHeck[0].GetBall().CompareColor(i_listCHeck[1].GetBall()))
-        {
-            i_listCHeck.RemoveAt(0);
-        }
-
-        if (!i_listCHeck[i_listCHeck.Count - 2].GetBall().CompareColor(i_listCHeck[i_listCHeck.Count - 1].GetBall()))
-        {
-            i_listCHeck.RemoveAt(i_listCHeck.Count - 1);
-        }
-
         for (int i = 0; i < i_listCHeck.Count - 1; i++)
         {
             for (int j = i + 1; j < i_listCHeck.Count; j++)
@@ -426,7 +446,7 @@ public class GridManager : MonoBehaviour
     }
     public void RotateGameBoard(float i_angle)
     {
-        if(_parentGrid)
+        if(_parentGrid && _lastDetectedPosition != Vector3.zero)
         {
             _parentGrid.transform.Rotate(0, 0, i_angle, Space.Self);
         }    
