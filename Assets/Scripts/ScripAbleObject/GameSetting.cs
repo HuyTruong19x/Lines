@@ -5,6 +5,13 @@ using UnityEngine;
 public class GameSetting : ScriptableObject
 {
     public List<Color> Colors;
+    public List<BallData> Rates = new List<BallData>();
+}
+[System.Serializable]
+public class BallData
+{
+    public BALLTYPE Type;
     [Range(1, 100)]
-    public int RateSpawnGhostBall;
+    public int Rate;
+    public Material Material;
 }

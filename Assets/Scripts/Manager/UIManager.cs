@@ -26,6 +26,10 @@ public class UIManager : MonoBehaviour
     [SerializeField]
     GameObject _gameOverPopup;
 
+    //AR
+    [SerializeField]
+    GameObject _notification;
+
     GameData _gameData;
     private void OnEnable()
     {
@@ -98,6 +102,11 @@ public class UIManager : MonoBehaviour
         {
             _balls[i].color = new Color(i_colors[i].r, i_colors[i].g, i_colors[i].b, 1);
         }    
+    }    
+
+    public void SetActiveNotification(bool i_isEnable)
+    {
+        _notification?.SetActive(i_isEnable);
     }    
 
     public void OnGoToARSceneClick()

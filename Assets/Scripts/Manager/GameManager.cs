@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GameManager : Singleton<GameManager>
@@ -28,9 +29,9 @@ public class GameManager : Singleton<GameManager>
         }    
         return _gameSetting.Colors[UnityEngine.Random.Range(0, _gameSetting.Colors.Count)];
     }    
-    public int GetRateSpawnGhostBall()
+    public List<BallData> GetBallData()
     {
-        return _gameSetting.RateSpawnGhostBall;
+        return _gameSetting.Rates;
     }
     public void EndTurn()
     {

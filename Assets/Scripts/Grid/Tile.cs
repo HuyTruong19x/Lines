@@ -49,11 +49,11 @@ public class Tile : MonoBehaviour
         return _previousTile;
     }
 
-    public void UpdateBallPosition()
+    public void UpdateBall()
     {
         if(_ball != null)
         {
-            _ball.gameObject.transform.position = new Vector3(transform.position.x, transform.position.y, 0);
+            _ball.gameObject.transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, 0);
         }
     }
 
@@ -62,6 +62,7 @@ public class Tile : MonoBehaviour
         _ball?.gameObject.SetActive(false);
         _ball = null;
         _isShowed = false;
+        this.gameObject.SetActive(false);
     }
 
 }

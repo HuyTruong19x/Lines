@@ -12,6 +12,12 @@ public class ObjectPool : Singleton<ObjectPool>
     {
         for(int i = 0; i < _objects.Count; i++)
         {
+            if(_objects[i] == null)
+            {
+                _objects.RemoveAt(i);
+                i--;
+                continue;
+            }
             if(_objects[i].tag == i_tag && !_objects[i].activeSelf)
             {
                 _objects[i].SetActive(true);

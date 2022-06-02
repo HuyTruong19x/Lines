@@ -5,15 +5,16 @@ using UnityEngine;
 
 public class PathFinding
 {
-    public List<Tile> FindPath(Dictionary<Vector2Int, Tile> i_tiles, Tile start, Tile end)
+    public List<Tile> FindPath(Dictionary<Vector2Int, Tile> i_tiles, Tile i_tileStart, Tile i_tileEnd)
     {
         List<Tile> openList = new List<Tile>();
         List<Tile> closedList = new List<Tile>();
 
-        openList.Add(start);
+        openList.Add(i_tileStart);
 
-        if (end.isBlocked)
+        if (i_tileEnd.isBlocked)
         {
+            Debug.Log($"Tile at {i_tileEnd.GetLocation()} is blocked");
             return new List<Tile>();
         }
 
@@ -23,43 +24,44 @@ public class PathFinding
 
             openList.Remove(currentTile);
             closedList.Add(currentTile);
-
-            if (currentTile == end)
+            if (currentTile.GetLocation().x == i_tileEnd.GetLocation().x && currentTile.GetLocation().y == i_tileEnd.GetLocation().y)
             {
-                return GetFinishedList(start, end);
+                return GetFinishedList(i_tileStart, i_tileEnd);
             }
 
-            if (!start.GetBall().IsGhost)
+            if (!i_tileStart.GetBall().IsGhost)
             {
-                foreach (var tile in GetNeighbourTile(i_tiles, currentTile))
+                var neighboers = GetNeighbourTile(i_tiles, currentTile);
+                for (int i = 0; i < neighboers.Count; i++)
                 {
-                    if (tile.isBlocked || closedList.Contains(tile)) continue;
+                    if (neighboers[i].isBlocked || closedList.Contains(neighboers[i])) continue;
 
-                    tile.G = GetManhattenDistance(currentTile, tile) + currentTile.G;
-                    tile.H = GetManhattenDistance(end, tile);
+                    neighboers[i].G = GetManhattenDistance(currentTile, neighboers[i]) + currentTile.G;
+                    neighboers[i].H = GetManhattenDistance(i_tileEnd, neighboers[i]);
 
-                    tile.SetPreviousTile(currentTile);
+                    neighboers[i].SetPreviousTile(currentTile);
 
-                    if (!openList.Contains(tile))
+                    if (!openList.Contains(neighboers[i]))
                     {
-                        openList.Add(tile);
+                        openList.Add(neighboers[i]);
                     }
-                }
+                }    
             }
             else
             {
-                foreach (var tile in GetNeighbourTile(i_tiles, currentTile))
+                var neighboers = GetNeighbourTile(i_tiles, currentTile);
+                for (int i = 0; i < neighboers.Count; i++)
                 {
-                    if (closedList.Contains(tile)) continue;
+                    if (closedList.Contains(neighboers[i])) continue;
 
-                    tile.G = GetManhattenDistance(start, tile);
-                    tile.H = GetManhattenDistance(end, tile);
+                    neighboers[i].G = GetManhattenDistance(currentTile, neighboers[i]) + currentTile.G;
+                    neighboers[i].H = GetManhattenDistance(i_tileEnd, neighboers[i]);
 
-                    tile.SetPreviousTile(currentTile);
+                    neighboers[i].SetPreviousTile(currentTile);
 
-                    if (!openList.Contains(tile))
+                    if (!openList.Contains(neighboers[i]))
                     {
-                        openList.Add(tile);
+                        openList.Add(neighboers[i]);
                     }
                 }
 

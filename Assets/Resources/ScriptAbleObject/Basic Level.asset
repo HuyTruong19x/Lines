@@ -19,4 +19,16 @@ MonoBehaviour:
   - {r: 1, g: 0, b: 0.96229744, a: 1}
   - {r: 0, g: 0.04815674, b: 1, a: 1}
   - {r: 0, g: 1, b: 0.9687028, a: 1}
-  RateSpawnGhostBall: 10
+  Rates:
+  - Type: 1
+    Rate: 10
+    Material: {fileID: 2100000, guid: ba8c7dbaf9a062b4091dac819efe7538, type: 2}
+  - Type: 2
+    Rate: 20
+    Material: {fileID: 2100000, guid: 79866f5773e981e43ad4ff2cc840f3f4, type: 2}
+  - Type: 3
+    Rate: 30
+    Material: {fileID: 2100000, guid: bba292f19e5afcf4da36d67d5b99ccf7, type: 2}
+  - Type: 0
+    Rate: 100
+    Material: {fileID: 2100000, guid: ba8c7dbaf9a062b4091dac819efe7538, type: 2}

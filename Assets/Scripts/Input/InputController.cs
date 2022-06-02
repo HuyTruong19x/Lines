@@ -8,15 +8,9 @@ public class InputController : MonoBehaviour
     
     private Ray _ray;
     private RaycastHit _hitInfo;
+    [SerializeField]
     private BallManager _ballManager;
     private CameraController _cameraController;
-
-    private void Awake()
-    {
-        _ballManager = GameObject.FindObjectOfType<BallManager>();
-        
-    }
-
     private void Update()
     {
         if(GameManager.Instance.CanPlay)
@@ -52,6 +46,10 @@ public class InputController : MonoBehaviour
             Touch touch = Input.GetTouch(0);
             if(touch.phase == TouchPhase.Ended)
             {
+                if(_cameraController == null)
+                {
+                    _cameraController = GameObject.FindObjectOfType<CameraController>();
+                } 
                 Camera currentCamera = _cameraController.GetCamera();
                 if(currentCamera != null)
                 {

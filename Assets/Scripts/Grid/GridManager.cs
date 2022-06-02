@@ -10,20 +10,23 @@ public class GridManager : MonoBehaviour
     public int WIDTH = 9;
     public int HEIGHT = 9;
 
+    public Transform Grid { get { return _parentGrid; } set { _parentGrid = value; } }
+    [SerializeField]
     private BallManager _ballManager;
+    [SerializeField]
+    private Transform _parentGrid;
     private Dictionary<Vector2Int, Tile> _tiles = new Dictionary<Vector2Int, Tile>();
-    private float _maxTileSize = 0.9f;
-    private float _minTileSize = 0.2f;
-    private float _offset = 1.1f;
+
     //AR mode
     private ARRaycastManager _arRaycastManager;
     private List<ARRaycastHit> _hits = new List<ARRaycastHit>();
-    private RaycastHit _hitInfo;
     private bool _isDetecting = false;
-    private Vector2Int _firstTileLocation = Vector2Int.zero;
+    private Vector3 _lastDetectedPosition = Vector3.zero;
+    private Quaternion _lastDetectedRotation = Quaternion.identity;
+    private float _scaleObjectARMode = 0.02f;
     private void Start()
     {
-        _ballManager = GameObject.FindObjectOfType<BallManager>();
+        _parentGrid.Reset();
         if (GameManager.Instance.GameMode == GAMEMODE.ARMODE)
         {
             _arRaycastManager = GameObject.FindObjectOfType<ARRaycastManager>();
@@ -32,13 +35,13 @@ public class GridManager : MonoBehaviour
 
     private void OnEnable()
     {
-        EventManager.Instance.RegisterEvent(GAMEEVENT.SETUP, GenerateTiles);
+        EventManager.Instance.RegisterEvent(GAMEEVENT.SETUP, GridInitialize);
         EventManager.Instance.RegisterEvent(GAMEEVENT.CHANGEDGAMEMODE, UpdateGameMode);
     }
 
     private void OnDisable()
     {
-        EventManager.Instance.RemoveEvent(GAMEEVENT.SETUP, GenerateTiles);
+        EventManager.Instance.RemoveEvent(GAMEEVENT.SETUP, GridInitialize);
         EventManager.Instance.RemoveEvent(GAMEEVENT.CHANGEDGAMEMODE, UpdateGameMode);
     }
 
@@ -53,13 +56,19 @@ public class GridManager : MonoBehaviour
                     return;
                 }    
                 Touch touch = Input.GetTouch(0);
-                if(_arRaycastManager.Raycast(touch.position, _hits, UnityEngine.XR.ARSubsystems.TrackableType.Planes))
+                if(_arRaycastManager.Raycast(touch.position, _hits, UnityEngine.XR.ARSubsystems.TrackableType.PlaneWithinPolygon))
                 {
-                    _firstTileLocation = new Vector2Int((int)_hits[0].pose.position.x, (int)_hits[0].pose.position.y);
                     _isDetecting = false;
-                    GenerateTiles(_firstTileLocation.x, _firstTileLocation.y, Vector3.one * _minTileSize);
-                    _tiles[new Vector2Int(0,0)].transform.parent.rotation = _hits[0].pose.rotation;
-                    GameManager.Instance.ChangeGameState(GAMESTATE.STARTING);
+                    GenerateTiles();
+
+                    _lastDetectedPosition = _hits[0].pose.position;
+                    _lastDetectedRotation = Quaternion.Euler(90f, 0f, 0f);
+                    _parentGrid.localPosition = _lastDetectedPosition;
+                    _parentGrid.localRotation = _lastDetectedRotation;
+                    _parentGrid.localScale = Vector3.one * _scaleObjectARMode;
+
+                    FindObjectOfType<UIManager>()?.SetActiveNotification(false);
+                    StartInitializeBall();
                     Debug.Log("Finish detect plane");  
                 }
             }    
@@ -71,34 +80,42 @@ public class GridManager : MonoBehaviour
 #if !UNITY_EDITOR
         if(GameManager.Instance.GameMode == GAMEMODE.ARMODE)
         {
-            if (_firstTileLocation != Vector2Int.zero)
+            //Todo handle switch calse
+            if (_lastDetectedPosition != Vector3.zero)
             {
-                GenerateTiles(_firstTileLocation.x, _firstTileLocation.y, Vector3.one * _minTileSize);
+                GenerateTiles();
+                _parentGrid.localPosition = _lastDetectedPosition;
+                _parentGrid.localRotation = _lastDetectedRotation;
+                _parentGrid.localScale = Vector3.one * _scaleObjectARMode;
             }
             else
-            {
-                //Hide tile before detecting
-                foreach(var tile in _tiles)
-                {
-                    tile.Value.gameObject.SetActive(false);
-                }    
+            { 
+                FindObjectOfType<UIManager>()?.SetActiveNotification(true);
                 _isDetecting = true;
             }
         }    
         else
 #endif
         {
-            GenerateTiles(0, 0, Vector3.one * _maxTileSize);
-            _tiles[new Vector2Int(0, 0)].transform.parent.rotation = Quaternion.Euler(new Vector3(0,0,0));
+            _parentGrid.Reset();
+            GenerateTiles();
         }    
+    }   
+    private void StartInitializeBall()
+    {
+        _ballManager?.InitializeBall();
     }    
-    private void GenerateTiles()
+    private void GridInitialize()
     {
         ResetTiles();
-        UpdateGameMode();  
+        UpdateGameMode();
+        if(GameManager.Instance.GameMode == GAMEMODE.NONE)
+        {
+            StartInitializeBall();
+        }    
     }
 
-    private void GenerateTiles(int i_StartX, int i_StartY, Vector3 i_scale)
+    private void GenerateTiles()
     {
         if (_tiles.Count < 1)
         {
@@ -109,8 +126,8 @@ public class GridManager : MonoBehaviour
                     Tile tile = ObjectPool.Instance.TakeObject("tile").GetComponent<Tile>();
                     tile.SetLocation(i, y);
                     tile.gameObject.name = $"tile {i} - {y}";
-                    tile.gameObject.transform.localScale = i_scale;
-                    tile.gameObject.transform.position = new Vector3(i_StartX + i * i_scale.x * _offset, i_StartY + y * i_scale.y * _offset, -0.1f);
+                    tile.gameObject.transform.localPosition = new Vector3(i, y, -0.1f);
+                    tile.transform.parent = _parentGrid;
                     _tiles.Add(new Vector2Int(i, y), tile);
                 }
             }
@@ -127,13 +144,11 @@ public class GridManager : MonoBehaviour
                     {
                         _tiles[location].gameObject.SetActive(true);
                     }
-                    _tiles[location].gameObject.transform.localScale = i_scale;
-                    _tiles[location].gameObject.transform.position = new Vector3(i_StartX + i * i_scale.x * _offset, i_StartY + y * i_scale.y * _offset, -0.1f);
-                    _tiles[location].UpdateBallPosition();
+                    _tiles[location].gameObject.transform.localPosition = new Vector3(i, y , -0.1f);
+                    _tiles[location].UpdateBall();
                 }
             }
         }
-        GameManager.Instance.ChangeGameState(GAMESTATE.STARTING);
     }
 
     private void ResetTiles()
@@ -183,7 +198,7 @@ public class GridManager : MonoBehaviour
 
             if (_tiles.ContainsKey(yangNumber) && yang)
             {
-                if (_tiles[yangNumber].GetBall() != null && _tiles[yangNumber].GetBall().Color == i_tile.GetBall().Color)
+                if (_tiles[yangNumber].GetBall() != null && _tiles[yangNumber].GetBall().CompareColor(i_tile.GetBall()))
                 {
                     listCheck.Add(_tiles[yangNumber]);
                 }
@@ -193,7 +208,7 @@ public class GridManager : MonoBehaviour
 
             if (_tiles.ContainsKey(yinNumber) && yin)
             {
-                if (_tiles[yinNumber].GetBall() != null && _tiles[yinNumber].GetBall().Color == i_tile.GetBall().Color)
+                if (_tiles[yinNumber].GetBall() != null && _tiles[yinNumber].GetBall().CompareColor(i_tile.GetBall()))
                 {
                     listCheck.Add(_tiles[yinNumber]);
                 }
@@ -229,7 +244,7 @@ public class GridManager : MonoBehaviour
 
             if (_tiles.ContainsKey(yangNumber) && yang)
             {
-                if (_tiles[yangNumber].GetBall() != null && _tiles[yangNumber].GetBall().Color == i_tile.GetBall().Color)
+                if (_tiles[yangNumber].GetBall() != null && _tiles[yangNumber].GetBall().CompareColor(i_tile.GetBall()))
                 {
                     listCheck.Add(_tiles[yangNumber]);
                 }
@@ -239,7 +254,7 @@ public class GridManager : MonoBehaviour
 
             if (_tiles.ContainsKey(yinNumber) && yin)
             {
-                if (_tiles[yinNumber].GetBall() != null && _tiles[yinNumber].GetBall().Color == i_tile.GetBall().Color)
+                if (_tiles[yinNumber].GetBall() != null && _tiles[yinNumber].GetBall().CompareColor(i_tile.GetBall()))
                 {
                     listCheck.Add(_tiles[yinNumber]);
                 }
@@ -275,7 +290,7 @@ public class GridManager : MonoBehaviour
 
             if (_tiles.ContainsKey(yangNumber) && yang)
             {
-                if (_tiles[yangNumber].GetBall() != null && _tiles[yangNumber].GetBall().Color == i_tile.GetBall().Color)
+                if (_tiles[yangNumber].GetBall() != null && _tiles[yangNumber].GetBall().CompareColor(i_tile.GetBall()))
                 {
                     listCheck.Add(_tiles[yangNumber]);
                 }
@@ -285,7 +300,7 @@ public class GridManager : MonoBehaviour
 
             if (_tiles.ContainsKey(yinNumber) && yin)
             {
-                if (_tiles[yinNumber].GetBall() != null && _tiles[yinNumber].GetBall().Color == i_tile.GetBall().Color)
+                if (_tiles[yinNumber].GetBall() != null && _tiles[yinNumber].GetBall().CompareColor(i_tile.GetBall()))
                 {
                     listCheck.Add(_tiles[yinNumber]);
                 }
@@ -321,7 +336,7 @@ public class GridManager : MonoBehaviour
 
             if (_tiles.ContainsKey(yangNumber) && yang)
             {
-                if (_tiles[yangNumber].GetBall() != null && _tiles[yangNumber].GetBall().Color == i_tile.GetBall().Color)
+                if (_tiles[yangNumber].GetBall() != null && _tiles[yangNumber].GetBall().CompareColor(i_tile.GetBall()))
                 {
                     listCheck.Add(_tiles[yangNumber]);
                 }
@@ -331,7 +346,7 @@ public class GridManager : MonoBehaviour
 
             if (_tiles.ContainsKey(yinNumber) && yin)
             {
-                if (_tiles[yinNumber].GetBall() != null && _tiles[yinNumber].GetBall().Color == i_tile.GetBall().Color)
+                if (_tiles[yinNumber].GetBall() != null && _tiles[yinNumber].GetBall().CompareColor(i_tile.GetBall()))
                 {
                     listCheck.Add(_tiles[yinNumber]);
                 }
@@ -356,6 +371,17 @@ public class GridManager : MonoBehaviour
             }
         }
         #endregion
+
+        for(int i = 0; i < finishList.Count - 1; i++)
+        {
+            for(int j = i + 1; j < finishList.Count; j++)
+            {
+                if(!finishList[i].GetBall().CompareColor(finishList[j].GetBall()))
+                {
+                    return;
+                }    
+            }    
+        }    
 
         if(finishList.Count >= 5)
         {
