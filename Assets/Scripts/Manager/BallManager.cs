@@ -26,6 +26,7 @@ public class BallManager : MonoBehaviour
         EventManager.Instance.RegisterEvent(GAMEEVENT.STARTING, SetupBall);
         EventManager.Instance.RegisterEvent(GAMEEVENT.WAITING, DequeueBall);
         EventManager.Instance.RegisterEvent(GAMEEVENT.ENDTURN, GrowUpBall);
+        EventManager.Instance.RegisterEvent(GAMEEVENT.GAMEOVER, ResetBall);
     }
 
     private void OnDisable()
@@ -33,6 +34,7 @@ public class BallManager : MonoBehaviour
         EventManager.Instance.RemoveEvent(GAMEEVENT.STARTING, SetupBall);
         EventManager.Instance.RemoveEvent(GAMEEVENT.WAITING, DequeueBall);
         EventManager.Instance.RemoveEvent(GAMEEVENT.ENDTURN, GrowUpBall);
+        EventManager.Instance.RegisterEvent(GAMEEVENT.GAMEOVER, ResetBall);
     }
     private void Awake()
     {
@@ -55,6 +57,10 @@ public class BallManager : MonoBehaviour
         BallData ballData = new BallData();
         ballData.Type = BALLTYPE.NONE;
         return ballData;
+    }    
+    public void ResetBall()
+    {
+        _isInitialized = false;
     }    
     public void InitializeBall()
     {
