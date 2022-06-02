@@ -31,4 +31,4 @@ MonoBehaviour:
     Material: {fileID: 2100000, guid: bba292f19e5afcf4da36d67d5b99ccf7, type: 2}
   - Type: 0
     Rate: 100
-    Material: {fileID: 2100000, guid: ba8c7dbaf9a062b4091dac819efe7538, type: 2}
+    Material: {fileID: 2100000, guid: 932230b0ea168be4e96945292a8592fc, type: 2}

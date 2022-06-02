@@ -223,7 +223,10 @@ public class GridManager : MonoBehaviour
                     if (finishList.Contains(i_tile))
                         listCheck.Remove(i_tile);
 
-                    finishList.AddRange(listCheck);
+                    if (CheckList(listCheck))
+                    {
+                        finishList.AddRange(listCheck);
+                    }
                     listCheck.Clear();
                 }
                 else
@@ -268,8 +271,10 @@ public class GridManager : MonoBehaviour
                 {
                     if (finishList.Contains(i_tile))
                         listCheck.Remove(i_tile);
-
-                    finishList.AddRange(listCheck);
+                    if(CheckList(listCheck))
+                    {
+                        finishList.AddRange(listCheck);
+                    }
                     listCheck.Clear();
                 }
                 else
@@ -315,7 +320,10 @@ public class GridManager : MonoBehaviour
                     if (finishList.Contains(i_tile))
                         listCheck.Remove(i_tile);
 
-                    finishList.AddRange(listCheck);
+                    if (CheckList(listCheck))
+                    {
+                        finishList.AddRange(listCheck);
+                    }
                     listCheck.Clear();
                 }
                 else
@@ -361,7 +369,10 @@ public class GridManager : MonoBehaviour
                     if (finishList.Contains(i_tile))
                         listCheck.Remove(i_tile);
 
-                    finishList.AddRange(listCheck);
+                    if (CheckList(listCheck))
+                    {
+                        finishList.AddRange(listCheck);
+                    }
                     listCheck.Clear();
                 }
                 else
@@ -387,6 +398,20 @@ public class GridManager : MonoBehaviour
         {
             _ballManager.DestroyBall(finishList);
         }    
+    }
+    private bool CheckList(List<Tile> i_listCHeck)
+    {
+        for (int i = 0; i < i_listCHeck.Count - 1; i++)
+        {
+            for (int j = i + 1; j < i_listCHeck.Count; j++)
+            {
+                if (!i_listCHeck[i].GetBall().CompareColor(i_listCHeck[j].GetBall()))
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
     private bool isInside(Vector2Int i_location)
     {

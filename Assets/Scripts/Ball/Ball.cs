@@ -35,7 +35,7 @@ public class Ball : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if(_ballType == BALLTYPE.RAINBOW)
+        if(_ballType == BALLTYPE.RAINBOW || _ballType == BALLTYPE.GHOST)
         {
             transform.Rotate(0, _smoothRotate, 0, Space.Self);
         }    
@@ -134,7 +134,7 @@ public class Ball : MonoBehaviour
     {
         _gridManager = i_grid;
         _location = i_location;
-        _ghostObject?.SetActive(i_ballType == BALLTYPE.GHOST);
+        //_ghostObject?.SetActive(i_ballType == BALLTYPE.GHOST);
         _ballType = i_ballType;
         
         if(i_material != null)
@@ -178,7 +178,7 @@ public class Ball : MonoBehaviour
     }  
     public void SetBallMode(BALLTYPE i_ballType)
     {
-        _ghostObject?.SetActive(i_ballType == BALLTYPE.GHOST);
+        //_ghostObject?.SetActive(i_ballType == BALLTYPE.GHOST);
         _ballType = i_ballType;
     }
     public Vector2Int GetLocation()
