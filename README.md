@@ -12,3 +12,10 @@
 ***Chế độ AR (AR scene)*** :
 - Game sẽ xác định mặt phẳng ngang bằng camera, sau đó bạn có thể chọn bất cứ mặt phẳng nào để hiện thị game trên đó
 - Khi bắt chế độ AR, game sẽ tự động chuyển về chế độ chơi thường ( vẫn giữ nguyên trạng thái trò chơi)
+
+
+***Cấu hình game***
+
+- Chỉnh sửa thông số tại Assets\Resources\ScriptAbleObject\Basic Level
+
+- Hoặc tạo mới : Create -> Game Setting -> New Game Setting và đặt nó vào GameManager
